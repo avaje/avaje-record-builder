@@ -94,11 +94,13 @@ public class RecordProcessor extends AbstractProcessor {
     var shortName = type.getSimpleName().toString();
     if (type.getEnclosingElement() instanceof TypeElement) isImported = true;
     var imports = imports(type, isImported, components);
+    var numberOfComponents = components.size();
     String fieldString = fields(components);
-    String constructorParams = constructorParams(components);
+    String constructorParams = constructorParams(components, numberOfComponents > 5);
     String constructorBody = constructorBody(components);
-    String builderFrom = builderFrom(components);
-    String build = build(components);
+    String builderFrom =
+        builderFrom(components).transform(s -> numberOfComponents > 5 ? "\n        " + s : s);
+    String build = build(components).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
 
     try (var writer =
         new Append(createSourceFile(packageName + "." + shortName + "Builder").openWriter())) {
@@ -122,18 +124,21 @@ public class RecordProcessor extends AbstractProcessor {
   static String imports(
       TypeElement type, boolean isImpoorted, List<? extends RecordComponentElement> components) {
     return components.stream()
-            .map(RecordComponentElement::asType)
-            .filter(not(PrimitiveType.class::isInstance))
-            .map(TypeMirror::toString)
-            .map(ProcessorUtils::trimAnnotations)
-            .flatMap(s -> Arrays.stream(s.split("[<|>|,]")))
-            .map(Utils::extractTypeWithNest)
-            .distinct()
-            .filter(not(String::isBlank))
-            .filter(s -> !s.startsWith("java.lang"))
-            .map(s -> "import " + s + ";")
-            .collect(joining("\n"))
-        + (isImpoorted ? "\nimport " + type.getQualifiedName() + ";" : "");
+        .map(RecordComponentElement::asType)
+        .filter(not(PrimitiveType.class::isInstance))
+        .map(TypeMirror::toString)
+        .map(ProcessorUtils::trimAnnotations)
+        .flatMap(s -> Arrays.stream(s.split("[<|>|,]")))
+        .map(Utils::extractTypeWithNest)
+        .distinct()
+        .filter(not(String::isBlank))
+        .filter(s -> !s.startsWith("java.lang"))
+        .map(s -> "import " + s + ";")
+        .collect(joining("\n"))
+        .transform(s -> s + (isImpoorted ? "\nimport " + type.getQualifiedName() + ";" : ""))
+        .lines()
+        .distinct()
+        .collect(joining("\n"));
   }
 
   static String fields(List<? extends RecordComponentElement> components) {
@@ -148,18 +153,19 @@ public class RecordProcessor extends AbstractProcessor {
               .transform(s -> s.isBlank() ? s : " = " + s);
 
       builder.append(
-          "    private %s %s%s;\n"
-              .formatted(type.shortType(), element.getSimpleName(), defaultVal));
+          "  private %s %s%s;\n".formatted(type.shortType(), element.getSimpleName(), defaultVal));
     }
 
     return builder.toString();
   }
 
-  static String constructorParams(List<? extends RecordComponentElement> components) {
+  static String constructorParams(
+      List<? extends RecordComponentElement> components, boolean verticalArgs) {
 
     return components.stream()
         .map(r -> UType.parse(r.asType()).shortType() + " " + r.getSimpleName())
-        .collect(joining(", "));
+        .collect(joining(verticalArgs ? ",\n      " : ", "))
+        .transform(s -> verticalArgs ? "\n      " + s : s);
   }
 
   static String constructorBody(List<? extends RecordComponentElement> components) {
@@ -167,7 +173,7 @@ public class RecordProcessor extends AbstractProcessor {
     return components.stream()
         .map(RecordComponentElement::getSimpleName)
         .map(s -> MessageFormat.format("this.{0} = {0};", s))
-        .collect(joining("\n        "));
+        .collect(joining("\n    "));
   }
 
   static String builderFrom(List<? extends RecordComponentElement> components) {
@@ -211,6 +217,7 @@ public class RecordProcessor extends AbstractProcessor {
   	        public {1} {0}() '{'
   	            return {0};
   	        '}'
+
   	      """,
         componentName, type, shortName.replace(".", "$"));
   }
@@ -228,6 +235,7 @@ public class RecordProcessor extends AbstractProcessor {
     return MessageFormat.format(
         """
 			  	package {0};
+
 			  	{1}
 
 			  	public class {2}Builder '{'
@@ -236,7 +244,7 @@ public class RecordProcessor extends AbstractProcessor {
 			  	  '}'
 
 			  	  private {2}Builder({4}) '{'
-			  	      {5}
+			  	    {5}
 			  	  '}'
 
 			  	  /**
