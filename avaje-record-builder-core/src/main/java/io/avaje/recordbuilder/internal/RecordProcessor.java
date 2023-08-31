@@ -123,6 +123,7 @@ public class RecordProcessor extends AbstractProcessor {
 
   static String imports(
       TypeElement type, boolean isImpoorted, List<? extends RecordComponentElement> components) {
+
     return components.stream()
         .map(RecordComponentElement::asType)
         .filter(not(PrimitiveType.class::isInstance))
