@@ -5,9 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Set;
 
 import javax.tools.JavaFileObject;
@@ -20,12 +23,14 @@ import org.junit.jupiter.api.Test;
 
 import io.avaje.recordbuilder.internal.RecordProcessor;
 
-class ServiceProcessorTest {
+class RecordProcessorTest {
 
   @AfterEach
   void deleteGeneratedFiles() throws IOException {
-    Paths.get("io.avaje.recordbuilder.test.SPIInterface").toAbsolutePath().toFile().delete();
-    Paths.get(" io.avaje.recordbuilder.test.SPIInterface$NestedSPIInterface").toAbsolutePath().toFile().delete();
+    Files.walk(Paths.get("io").toAbsolutePath())
+        .sorted(Comparator.reverseOrder())
+        .map(Path::toFile)
+        .forEach(File::delete);
   }
 
   @Test
@@ -41,14 +46,6 @@ class ServiceProcessorTest {
     task.setProcessors(Arrays.asList(new RecordProcessor()));
 
     assertThat(task.call()).isTrue();
-
-    assertThat(Paths.get("io.avaje.recordbuilder.test.SPIInterface").toAbsolutePath().toFile().exists()).isTrue();
-    assertThat(
-            Paths.get("io.avaje.recordbuilder.test.SPIInterface$NestedSPIInterface")
-                .toAbsolutePath()
-                .toFile()
-                .exists())
-        .isTrue();
   }
 
   private Iterable<JavaFileObject> getSourceFiles(String source) throws Exception {
