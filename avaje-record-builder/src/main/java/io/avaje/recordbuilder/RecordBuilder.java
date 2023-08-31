@@ -33,6 +33,6 @@ public @interface RecordBuilder {
   @interface Import {
 
     /** Specify types to generate Builders for. */
-    Class<?>[] value();
+    Class<? extends Record>[] value();
   }
 }

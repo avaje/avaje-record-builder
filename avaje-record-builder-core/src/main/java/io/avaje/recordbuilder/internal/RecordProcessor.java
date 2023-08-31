@@ -31,9 +31,10 @@ import javax.lang.model.util.ElementFilter;
 import io.avaje.prism.GenerateAPContext;
 import io.avaje.prism.GenerateUtils;
 
+// TODO break up this God class
 @GenerateUtils
 @GenerateAPContext
-@SupportedAnnotationTypes(RecordBuilderPrism.PRISM_TYPE)
+@SupportedAnnotationTypes({RecordBuilderPrism.PRISM_TYPE, ImportPrism.PRISM_TYPE})
 public class RecordProcessor extends AbstractProcessor {
 
   static Map<String, String> defaultsMap = new HashMap<>();
@@ -78,6 +79,13 @@ public class RecordProcessor extends AbstractProcessor {
       readElement(type);
     }
 
+    roundEnv.getElementsAnnotatedWith(typeElement(ImportPrism.PRISM_TYPE)).stream()
+        .map(ImportPrism::getInstanceOn)
+        .map(ImportPrism::value)
+        .flatMap(List::stream)
+        .map(APContext::asTypeElement)
+        .forEach(this::readElement);
+
     return false;
   }
 
@@ -92,9 +100,12 @@ public class RecordProcessor extends AbstractProcessor {
         elements().getPackageOf(type).getQualifiedName().toString()
             + (isImported ? ".builder" : "");
     var shortName = type.getSimpleName().toString();
-    if (type.getEnclosingElement() instanceof TypeElement) isImported = true;
+    if (type.getEnclosingElement() instanceof TypeElement) {
+      isImported = true;
+    }
     var imports = imports(type, isImported, components);
     var numberOfComponents = components.size();
+
     String fieldString = fields(components);
     String constructorParams = constructorParams(components, numberOfComponents > 5);
     String constructorBody = constructorBody(components);
@@ -107,13 +118,13 @@ public class RecordProcessor extends AbstractProcessor {
       var temp =
           template(
               packageName,
+              imports,
               shortName,
               fieldString,
               constructorParams,
               constructorBody,
               builderFrom,
-              build,
-              imports);
+              build);
       writer.append(temp);
       methods(writer, shortName, components);
     } catch (IOException e) {
@@ -225,13 +236,13 @@ public class RecordProcessor extends AbstractProcessor {
 
   String template(
       String packageName,
+      String imports,
       String shortName,
       String fields,
       String constructor,
       String constructorBody,
       String builderFrom,
-      String build,
-      String imports) {
+      String build) {
 
     return MessageFormat.format(
         """
