@@ -11,7 +11,6 @@ import java.util.StringJoiner;
 
 import javax.lang.model.type.TypeMirror;
 
-import io.avaje.recordbuilder.internal.ProcessorUtils;
 
 public interface UType {
 

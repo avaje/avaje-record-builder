@@ -41,11 +41,11 @@ public class RecordProcessor extends AbstractProcessor {
 
   static {
     var util = "java.util.%s";
-    var init = "new %s()";
-    var initDiamond = "new %s<>()";
-    defaultsMap.put(util.formatted("List"), initDiamond.formatted("ArrayList"));
-    defaultsMap.put(util.formatted("ArrayList"), initDiamond.formatted("ArrayList"));
-    defaultsMap.put(util.formatted("LinkedList"), initDiamond.formatted("LinkedList"));
+    // var init = "new %s()";
+    // var initDiamond = "new %s<>()";
+    defaultsMap.put(util.formatted("List"), "java.util.ArrayList");
+    defaultsMap.put(util.formatted("ArrayList"), "java.util.ArrayList");
+    defaultsMap.put(util.formatted("LinkedList"), "java.util.LinkedList");
   }
 
   @Override
@@ -103,10 +103,13 @@ public class RecordProcessor extends AbstractProcessor {
     if (type.getEnclosingElement() instanceof TypeElement) {
       isImported = true;
     }
-    var imports = imports(type, isImported, components);
+    RecordModel rm = new RecordModel(type, isImported, components);
+    rm.initialImports();
+    String fieldString = rm.fields(defaultsMap);
+    var imports = rm.importsFormat();
     var numberOfComponents = components.size();
 
-    String fieldString = fields(components);
+    //String fieldString = fields(components);
     String constructorParams = constructorParams(components, numberOfComponents > 5);
     String constructorBody = constructorBody(components);
     String builderFrom =
@@ -132,26 +135,7 @@ public class RecordProcessor extends AbstractProcessor {
     }
   }
 
-  static String imports(
-      TypeElement type, boolean isImported, List<? extends RecordComponentElement> components) {
 
-    return components.stream()
-        .map(RecordComponentElement::asType)
-        .filter(not(PrimitiveType.class::isInstance))
-        .map(TypeMirror::toString)
-        .map(ProcessorUtils::trimAnnotations)
-        .flatMap(s -> Arrays.stream(s.split("[<|>|,]")))
-        .map(Utils::extractTypeWithNest)
-        .distinct()
-        .filter(not(String::isBlank))
-        .filter(s -> !s.startsWith("java.lang"))
-        .map(s -> "import " + s + ";")
-        .collect(joining("\n"))
-        .transform(s -> s + (isImported ? "\nimport " + type.getQualifiedName() + ";" : ""))
-        .lines()
-        .distinct()
-        .collect(joining("\n"));
-  }
 
   static String fields(List<? extends RecordComponentElement> components) {
     var builder = new StringBuilder();
