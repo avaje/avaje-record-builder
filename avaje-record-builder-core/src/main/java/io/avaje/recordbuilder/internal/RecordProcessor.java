@@ -1,7 +1,7 @@
 package io.avaje.recordbuilder.internal;
 
 import static io.avaje.recordbuilder.internal.APContext.createSourceFile;
-import static io.avaje.recordbuilder.internal.APContext.elements;
+import static io.avaje.recordbuilder.internal.APContext.*;
 import static io.avaje.recordbuilder.internal.APContext.logError;
 import static io.avaje.recordbuilder.internal.APContext.typeElement;
 import static java.util.stream.Collectors.joining;
@@ -82,6 +82,14 @@ public class RecordProcessor extends AbstractProcessor {
         .map(APContext::asTypeElement)
         .forEach(this::readElement);
 
+    if (roundEnv.processingOver()) {
+      try (var reader = getModuleInfoReader()) {
+
+        ModuleReader.read(reader);
+      } catch (IOException e) {
+        // Can't read module, it's whatever
+      }
+    }
     return false;
   }
 
