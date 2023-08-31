@@ -32,7 +32,7 @@ public record ArmoredCore(String coreName, String model, int energyReserve, int 
 ```
 
 The following class will be generated:
-```
+```java
 /**  Builder class for {@link ArmoredCore} */
 public class ArmoredCoreBuilder {
   private String coreName;  // -- java.lang.String
