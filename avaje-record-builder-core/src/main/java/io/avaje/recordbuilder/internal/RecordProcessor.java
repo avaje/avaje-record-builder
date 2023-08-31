@@ -1,6 +1,7 @@
 package io.avaje.recordbuilder.internal;
 
-import static io.avaje.recordbuilder.internal.APContext.*;
+import static io.avaje.recordbuilder.internal.APContext.createSourceFile;
+import static io.avaje.recordbuilder.internal.APContext.elements;
 import static io.avaje.recordbuilder.internal.APContext.logError;
 import static io.avaje.recordbuilder.internal.APContext.typeElement;
 import static java.util.function.Predicate.not;
@@ -24,7 +25,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.PrimitiveType;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
@@ -39,6 +39,12 @@ public class RecordProcessor extends AbstractProcessor {
   static Map<String, String> defaultsMap = new HashMap<>();
 
   static {
+    var util = "java.util.%s";
+    var init = "new %s()";
+    var initDiamond = "new %s<>()";
+    defaultsMap.put(util.formatted("List"), initDiamond.formatted("ArrayList"));
+    defaultsMap.put(util.formatted("ArrayList"), initDiamond.formatted("ArrayList"));
+    defaultsMap.put(util.formatted("LinkedList"), initDiamond.formatted("LinkedList"));
   }
 
   @Override
@@ -69,7 +75,6 @@ public class RecordProcessor extends AbstractProcessor {
         logError(type, "Builders can only be generated for record classes");
         continue;
       }
-
       readElement(type);
     }
 
@@ -122,6 +127,7 @@ public class RecordProcessor extends AbstractProcessor {
             .map(TypeMirror::toString)
             .map(ProcessorUtils::trimAnnotations)
             .flatMap(s -> Arrays.stream(s.split("[<|>|,]")))
+            .map(Utils::extractTypeWithNest)
             .distinct()
             .filter(not(String::isBlank))
             .filter(s -> !s.startsWith("java.lang"))
@@ -142,7 +148,8 @@ public class RecordProcessor extends AbstractProcessor {
               .transform(s -> s.isBlank() ? s : " = " + s);
 
       builder.append(
-          "    static %s %s%s;\n".formatted(type.shortType(), element.getSimpleName(), defaultVal));
+          "    private %s %s%s;\n"
+              .formatted(type.shortType(), element.getSimpleName(), defaultVal));
     }
 
     return builder.toString();
@@ -204,8 +211,8 @@ public class RecordProcessor extends AbstractProcessor {
   	        public {1} {0}() '{'
   	            return {0};
   	        '}'
-  	    """,
-        componentName, type, shortName.replace(".","$"));
+  	      """,
+        componentName, type, shortName.replace(".", "$"));
   }
 
   String template(
@@ -225,33 +232,33 @@ public class RecordProcessor extends AbstractProcessor {
 
 			  	public class {2}Builder '{'
 			  	{3}
-			  	    private {2}Builder() '{'
-			  	    '}'
+			  	  private {2}Builder() '{'
+			  	  '}'
 
-			  	    private {2}Builder({4}) '{'
-			  	        {5}
-			  	    '}'
+			  	  private {2}Builder({4}) '{'
+			  	      {5}
+			  	  '}'
 
-			  	    /**
-			  	     * Return a new builder with all fields set to default Java values
-			  	     */
-			  	    public static {2}Builder builder() '{'
-			  	        return new {2}Builder();
-			  	    '}'
+			  	  /**
+			  	   * Return a new builder with all fields set to default Java values
+			  	   */
+			  	  public static {2}Builder builder() '{'
+			  	      return new {2}Builder();
+			  	  '}'
 
-			  	    /**
-			  	     * Return a new builder with all fields set to the values taken from the given record instance
-			  	     */
-			  	    public static {2}Builder builder({2} from) '{'
-			  	        return new {2}Builder({6});
-			  	    '}'
+			  	  /**
+			  	   * Return a new builder with all fields set to the values taken from the given record instance
+			  	   */
+			  	  public static {2}Builder builder({2} from) '{'
+			  	      return new {2}Builder({6});
+			  	  '}'
 
-			  	    /**
-			  	     * Return a new {2} instance with all fields set to the current values in this builder
-			  	     */
-			  	    public {2} build() '{'
-			  	        return new {2}({7});
-			  	    '}'
+			  	  /**
+			  	   * Return a new {2} instance with all fields set to the current values in this builder
+			  	   */
+			  	  public {2} build() '{'
+			  	      return new {2}({7});
+			  	  '}'
 			  	""",
         packageName, imports, shortName, fields, constructor, constructorBody, builderFrom, build);
   }
