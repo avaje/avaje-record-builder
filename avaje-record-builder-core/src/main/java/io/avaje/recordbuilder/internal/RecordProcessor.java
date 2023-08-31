@@ -4,14 +4,12 @@ import static io.avaje.recordbuilder.internal.APContext.createSourceFile;
 import static io.avaje.recordbuilder.internal.APContext.elements;
 import static io.avaje.recordbuilder.internal.APContext.logError;
 import static io.avaje.recordbuilder.internal.APContext.typeElement;
-import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +22,6 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.PrimitiveType;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
 import io.avaje.prism.GenerateAPContext;
@@ -40,12 +36,12 @@ public class RecordProcessor extends AbstractProcessor {
   static Map<String, String> defaultsMap = new HashMap<>();
 
   static {
-    var util = "java.util.%s";
+    final var util = "java.util.%s";
     // var init = "new %s()";
     // var initDiamond = "new %s<>()";
     defaultsMap.put(util.formatted("List"), "java.util.ArrayList");
-    defaultsMap.put(util.formatted("ArrayList"), "java.util.ArrayList");
-    defaultsMap.put(util.formatted("LinkedList"), "java.util.LinkedList");
+    defaultsMap.put(util.formatted("ArrayList"), util.formatted("ArrayList"));
+    defaultsMap.put(util.formatted("LinkedList"), util.formatted("LinkedList"));
   }
 
   @Override
@@ -62,14 +58,14 @@ public class RecordProcessor extends AbstractProcessor {
   @Override
   public boolean process(Set<? extends TypeElement> tes, RoundEnvironment roundEnv) {
 
-    var globalTypeInitializers =
+    final var globalTypeInitializers =
         roundEnv.getElementsAnnotatedWith(typeElement(GlobalPrism.PRISM_TYPE)).stream()
             .map(GlobalPrism::getInstanceOn)
             .collect(toMap(s -> s.type().toString(), GlobalPrism::value));
 
     defaultsMap.putAll(globalTypeInitializers);
     APContext.setProjectModuleElement(tes, roundEnv);
-    for (TypeElement type :
+    for (final TypeElement type :
         ElementFilter.typesIn(
             roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
       if (type.getRecordComponents().isEmpty()) {
@@ -95,30 +91,31 @@ public class RecordProcessor extends AbstractProcessor {
 
   private void readElement(TypeElement type, boolean isImported) {
 
-    var components = type.getRecordComponents();
-    var packageName =
+    final var components = type.getRecordComponents();
+    final var packageName =
         elements().getPackageOf(type).getQualifiedName().toString()
             + (isImported ? ".builder" : "");
-    var shortName = type.getSimpleName().toString();
+    final var shortName = type.getSimpleName().toString();
     if (type.getEnclosingElement() instanceof TypeElement) {
       isImported = true;
     }
-    RecordModel rm = new RecordModel(type, isImported, components);
+    final RecordModel rm = new RecordModel(type, isImported, components);
     rm.initialImports();
-    String fieldString = rm.fields(defaultsMap);
-    var imports = rm.importsFormat();
-    var numberOfComponents = components.size();
+    final String fieldString = rm.fields(defaultsMap);
+    final var imports = rm.importsFormat();
+    final var numberOfComponents = components.size();
 
-    //String fieldString = fields(components);
-    String constructorParams = constructorParams(components, numberOfComponents > 5);
-    String constructorBody = constructorBody(components);
-    String builderFrom =
+    // String fieldString = fields(components);
+    final String constructorParams = constructorParams(components, numberOfComponents > 5);
+    final String constructorBody = constructorBody(components);
+    final String builderFrom =
         builderFrom(components).transform(s -> numberOfComponents > 5 ? "\n        " + s : s);
-    String build = build(components).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
+    final String build =
+        build(components).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
 
     try (var writer =
         new Append(createSourceFile(packageName + "." + shortName + "Builder").openWriter())) {
-      var temp =
+      final var temp =
           template(
               packageName,
               imports,
@@ -129,20 +126,19 @@ public class RecordProcessor extends AbstractProcessor {
               builderFrom,
               build);
       writer.append(temp);
-      methods(writer, shortName, components);
-    } catch (IOException e) {
+      final var writeGetters = RecordBuilderPrism.getInstanceOn(type).getters();
+      methods(writer, shortName, components, writeGetters);
+    } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
-
-
   static String fields(List<? extends RecordComponentElement> components) {
-    var builder = new StringBuilder();
-    for (var element : components) {
-      var type = UType.parse(element.asType());
+    final var builder = new StringBuilder();
+    for (final var element : components) {
+      final var type = UType.parse(element.asType());
 
-      var defaultVal =
+      final var defaultVal =
           DefaultInitPrism.getOptionalOn(element)
               .map(DefaultInitPrism::value)
               .orElseGet(() -> defaultsMap.getOrDefault(type.mainType(), ""))
@@ -186,11 +182,17 @@ public class RecordProcessor extends AbstractProcessor {
   }
 
   private void methods(
-      Append writer, String shortName, List<? extends RecordComponentElement> components) {
-    for (var element : components) {
-      var type = UType.parse(element.asType());
+      Append writer,
+      String shortName,
+      List<? extends RecordComponentElement> components,
+      Boolean writeGetters) {
+    for (final var element : components) {
+      final var type = UType.parse(element.asType());
 
-      writer.append(methodTemplate(element.getSimpleName(), type.shortType(), shortName));
+      writer.append(
+          Boolean.TRUE.equals(writeGetters)
+              ? methodTemplateGetter(element.getSimpleName(), type.shortType(), shortName)
+              : methodTemplate(element.getSimpleName(), type.shortType(), shortName));
     }
     writer.append("}");
   }
@@ -206,15 +208,30 @@ public class RecordProcessor extends AbstractProcessor {
   	            this.{0} = {0};
   	            return this;
   	        '}'
-
-  	        /**
-  	         * Return the current value for the '{'@code {0}'}' record component in the builder
-  	         */
-  	        public {1} {0}() '{'
-  	            return {0};
-  	        '}'
-
   	      """,
+        componentName, type, shortName.replace(".", "$"));
+  }
+
+  String methodTemplateGetter(CharSequence componentName, String type, String shortName) {
+
+    return MessageFormat.format(
+        """
+	  	        /**
+	  	         * Set a new value for the '{'@code {0}'}' record component in the builder
+	  	         */
+	  	        public {2}Builder {0}({1} {0}) '{'
+	  	            this.{0} = {0};
+	  	            return this;
+	  	        '}'
+
+	  	        /**
+	  	         * Return the current value for the '{'@code {0}'}' record component in the builder
+	  	         */
+	  	        public {1} {0}() '{'
+	  	            return {0};
+	  	        '}'
+
+	  	      """,
         componentName, type, shortName.replace(".", "$"));
   }
 
@@ -234,6 +251,7 @@ public class RecordProcessor extends AbstractProcessor {
 
 			  	{1}
 
+			  	/**  Builder class for '{'@link {2}'}' */
 			  	public class {2}Builder '{'
 			  	{3}
 			  	  private {2}Builder() '{'

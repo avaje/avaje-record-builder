@@ -1,5 +1,7 @@
 package io.avaje.recordbuilder.internal;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -7,10 +9,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import io.avaje.recordbuilder.internal.*;
-
-import static java.util.stream.Collectors.toSet;
 
 public final class ModuleReader {
 
@@ -48,7 +46,7 @@ public final class ModuleReader {
     String service = null;
     if (line.contains("provides")) {
       inProvides = true;
-      var matcher = regex.matcher(line);
+      final var matcher = regex.matcher(line);
       if (matcher.find()) {
         service = ProcessorUtils.shortType(matcher.group(1)).replace("$", ".");
       }
@@ -94,7 +92,7 @@ public final class ModuleReader {
   private static void parseServices(
       String input, Set<String> missingServiceImpls, Set<String> foundServiceImpls) {
 
-    for (var impl : missingServiceImpls) {
+    for (final var impl : missingServiceImpls) {
       if (input.contains(impl)) {
         foundServiceImpls.add(impl);
       }
