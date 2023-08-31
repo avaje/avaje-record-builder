@@ -10,8 +10,8 @@ Uses Annotation processing to automatically adds `META-INF/services` entries for
 ```xml
 <dependency>
   <groupId>io.avaje</groupId>
-  <artifactId>avaje-spi-service</artifactId>
-  <version>${spi.version}</version>
+  <artifactId>avaje-record-builder</artifactId>
+  <version>${record.version}</version>
   <optional>true</optional>
   <scope>provided</scope>
 </dependency>
@@ -20,44 +20,84 @@ Uses Annotation processing to automatically adds `META-INF/services` entries for
 When working with Java modules you need to add the annotation module as a static dependency.
 ```java
 module my.module {
-  requires static io.avaje.spi;
+  requires static io.avaje.record;
 }
 ```
-### 2. Add `@ServiceProvider`
+### 2. Add `@RecordBuilder`
 
 On classes that you'd like registered, put the `@ServiceProvider` annotation. As long as you only have one interface or one superclass, that type is assumed to be the spi interface. So given the example below:
 ```java
-@ServiceProvider
-public class MyProvider implements SomeSPI {
-  ...
+@RecordBuilder
+public record ArmoredCore(String coreName, String model, int energyReserve, int ap) {) {}
+```
+
+The following class will be generated:
+```
+/**  Builder class for {@link ArmoredCore} */
+public class ArmoredCoreBuilder {
+  private String coreName;  // -- java.lang.String
+  private String model;  // -- java.lang.String
+  private int energyReserve;  // -- int
+  private int ap;  // -- int
+
+  private ArmoredCoreBuilder() {
+  }
+
+  private ArmoredCoreBuilder(String coreName, String model, int energyReserve, int ap) {
+    this.coreName = coreName;
+    this.model = model;
+    this.energyReserve = energyReserve;
+    this.ap = ap;
+  }
+
+  /**
+   * Return a new builder with all fields set to default Java values
+   */
+  public static ArmoredCoreBuilder builder() {
+      return new ArmoredCoreBuilder();
+  }
+
+  /**
+   * Return a new builder with all fields set to the values taken from the given record instance
+   */
+  public static ArmoredCoreBuilder builder(ArmoredCore from) {
+      return new ArmoredCoreBuilder(from.coreName(), from.model(), from.energyReserve(), from.ap());
+  }
+
+  /**
+   * Return a new ArmoredCore instance with all fields set to the current values in this builder
+   */
+  public ArmoredCore build() {
+      return new ArmoredCore(coreName, model, energyReserve, ap);
+  }
+  /**
+   * Set a new value for the {@code coreName} record component in the builder
+   */
+  public ArmoredCoreBuilder coreName(String coreName) {
+      this.coreName = coreName;
+      return this;
+  }
+  /**
+   * Set a new value for the {@code model} record component in the builder
+   */
+  public ArmoredCoreBuilder model(String model) {
+      this.model = model;
+      return this;
+  }
+  /**
+   * Set a new value for the {@code energyReserve} record component in the builder
+   */
+  public ArmoredCoreBuilder energyReserve(int energyReserve) {
+      this.energyReserv = energyReserv;
+      return this;
+  }
+  /**
+   * Set a new value for the {@code ap} record component in the builder
+   */
+  public ArmoredCoreBuilder ap(int ap) {
+      this.ap = ap;
+      return this;
+  }
 }
 ```
-You get the `META-INF/services/com.example.SomeSPI` file whose content is `org.acme.MyProvider`.
-
-If you have multiple interfaces and/or base type, the library cannot infer the contract type. In such a case, specify the contract type explicitly by giving it to `@ServiceProvider` like this:
-
-```java
-@ServiceProvider(SomeSPI.class)
-public class MyExtendedProvider extends AbstractSet implements Comparable, Serializable, SomeSPI {
-  ...
-}
-```
-
-### 3. `module-info` validation
-For modular projects, the processor will throw a compile error describing what `provides` statements you have missed. So if you define the SPI like the the previous steps, and have a module setup like the following:
-```java
-module my.module {
-
-  requires static io.avaje.spi;
-
-}
-```
-You'll get the following compile error:
-```
- Compilation failure /src/main/java/module-info.java:[1,1]
- Missing `provides SomeSPI with MyProvider, MyExtendedProvider;`
-```
-
-## Related Works
-- [Pistachio](https://github.com/jstachio/pistachio)
 
