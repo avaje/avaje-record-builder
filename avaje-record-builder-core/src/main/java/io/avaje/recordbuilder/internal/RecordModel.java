@@ -60,7 +60,8 @@ public class RecordModel {
         final String dt = defaultsMap.get(type.mainType());
         if (dt != null) {
           importTypes.add(dt);
-          defaultVal = " = new " + dt + "<>()";
+
+          defaultVal = " = new " + ProcessorUtils.shortType(dt) + "<>()";
         }
       }
 
