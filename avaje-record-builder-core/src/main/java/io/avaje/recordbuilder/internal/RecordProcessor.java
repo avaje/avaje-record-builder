@@ -133,7 +133,7 @@ public class RecordProcessor extends AbstractProcessor {
   }
 
   static String imports(
-      TypeElement type, boolean isImpoorted, List<? extends RecordComponentElement> components) {
+      TypeElement type, boolean isImported, List<? extends RecordComponentElement> components) {
 
     return components.stream()
         .map(RecordComponentElement::asType)
@@ -147,7 +147,7 @@ public class RecordProcessor extends AbstractProcessor {
         .filter(s -> !s.startsWith("java.lang"))
         .map(s -> "import " + s + ";")
         .collect(joining("\n"))
-        .transform(s -> s + (isImpoorted ? "\nimport " + type.getQualifiedName() + ";" : ""))
+        .transform(s -> s + (isImported ? "\nimport " + type.getQualifiedName() + ";" : ""))
         .lines()
         .distinct()
         .collect(joining("\n"));
