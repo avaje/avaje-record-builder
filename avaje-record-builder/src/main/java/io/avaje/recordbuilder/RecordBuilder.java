@@ -28,6 +28,8 @@ import java.lang.annotation.Target;
 @Retention(SOURCE)
 public @interface RecordBuilder {
 
+  boolean getters() default false;
+
   @Retention(SOURCE)
   @Target({TYPE, PACKAGE, MODULE})
   @interface Import {

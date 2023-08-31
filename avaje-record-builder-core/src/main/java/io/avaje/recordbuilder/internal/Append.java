@@ -17,7 +17,7 @@ public class Append implements AutoCloseable {
     try {
       writer.append(content);
       return this;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
   }
@@ -27,7 +27,7 @@ public class Append implements AutoCloseable {
     try {
       writer.flush();
       writer.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
   }
@@ -36,7 +36,7 @@ public class Append implements AutoCloseable {
     try {
       writer.append("\n");
       return this;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }

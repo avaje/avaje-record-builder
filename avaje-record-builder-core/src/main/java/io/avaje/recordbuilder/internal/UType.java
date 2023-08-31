@@ -11,7 +11,6 @@ import java.util.StringJoiner;
 
 import javax.lang.model.type.TypeMirror;
 
-
 public interface UType {
 
   /** Create the UType from the given TypeMirror. */
@@ -21,13 +20,12 @@ public interface UType {
   }
   /** Create the UType from the given String. */
   static UType parse(String rawType) {
-    var type = ProcessorUtils.trimAnnotations(rawType);
-    int pos = type.indexOf('<');
+    final var type = ProcessorUtils.trimAnnotations(rawType);
+    final int pos = type.indexOf('<');
     if (pos == -1) {
       return new UType.Basic(type);
-    } else {
-      return new UType.Generic(type);
     }
+    return new UType.Generic(type);
   }
 
   /** Return the import types. */
@@ -109,12 +107,12 @@ public interface UType {
     }
 
     private String shortRawType(String rawType, List<String> allTypes) {
-      Map<String, String> typeMap = new LinkedHashMap<>();
-      for (String val : allTypes) {
+      final Map<String, String> typeMap = new LinkedHashMap<>();
+      for (final String val : allTypes) {
         typeMap.put(val, ProcessorUtils.shortType(val));
       }
       String shortRaw = rawType;
-      for (Map.Entry<String, String> entry : typeMap.entrySet()) {
+      for (final Map.Entry<String, String> entry : typeMap.entrySet()) {
         shortRaw = shortRaw.replace(entry.getKey(), entry.getValue());
       }
       return shortRaw;
@@ -127,8 +125,8 @@ public interface UType {
 
     @Override
     public Set<String> importTypes() {
-      Set<String> set = new LinkedHashSet<>();
-      for (String type : allTypes) {
+      final Set<String> set = new LinkedHashSet<>();
+      for (final String type : allTypes) {
         if (!type.startsWith("java.lang.") && type.indexOf('.') > -1) {
           if (type.startsWith("java")) {
             set.add(type.replace("[]", "").replace("?extends", ""));
@@ -171,7 +169,7 @@ public interface UType {
     @Override
     public String genericParams() {
       final StringJoiner joiner = new StringJoiner(",");
-      for (String type : allTypes) {
+      for (final String type : allTypes) {
         if (type.indexOf('.') == -1) {
           joiner.add(type);
         }
