@@ -5,15 +5,15 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 
 /** Helper that wraps a writer with some useful methods to append content. */
-public class Append implements AutoCloseable {
+final class Append implements AutoCloseable {
 
   private final Writer writer;
 
-  public Append(Writer writer) {
+  Append(Writer writer) {
     this.writer = writer;
   }
 
-  public Append append(String content) {
+  Append append(String content) {
     try {
       writer.append(content);
       return this;
@@ -32,7 +32,7 @@ public class Append implements AutoCloseable {
     }
   }
 
-  public Append eol() {
+  Append eol() {
     try {
       writer.append("\n");
       return this;
@@ -42,7 +42,7 @@ public class Append implements AutoCloseable {
   }
 
   /** Append content with formatted arguments. */
-  public Append append(String format, Object... args) {
+  Append append(String format, Object... args) {
     return append(String.format(format, args));
   }
 }

@@ -1,6 +1,6 @@
 package io.avaje.recordbuilder.internal;
 
-public class Utils {
+final class Utils {
   private Utils() {}
 
   static String extractTypeWithNest(String fullType) {

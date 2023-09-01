@@ -6,12 +6,12 @@ import java.io.BufferedReader;
 
 import javax.lang.model.element.ModuleElement;
 
-public final class ModuleReader {
+final class ModuleReader {
   private ModuleReader() {}
 
   private static ModuleElement module;
 
-  public static void read(BufferedReader reader) {
+  static void read(BufferedReader reader) {
     reader
         .lines()
         .forEach(

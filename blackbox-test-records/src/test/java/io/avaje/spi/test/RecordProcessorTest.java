@@ -1,7 +1,13 @@
 package io.avaje.spi.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import io.avaje.recordbuilder.internal.RecordProcessor;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
+import javax.tools.JavaFileObject;
+import javax.tools.JavaFileObject.Kind;
+import javax.tools.StandardLocation;
+import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,24 +19,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 
-import javax.tools.JavaFileObject;
-import javax.tools.JavaFileObject.Kind;
-import javax.tools.StandardLocation;
-import javax.tools.ToolProvider;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-
-import io.avaje.recordbuilder.internal.RecordProcessor;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class RecordProcessorTest {
 
   @AfterEach
   void deleteGeneratedFiles() throws IOException {
     Files.walk(Paths.get("io").toAbsolutePath())
-        .sorted(Comparator.reverseOrder())
-        .map(Path::toFile)
-        .forEach(File::delete);
+      .sorted(Comparator.reverseOrder())
+      .map(Path::toFile)
+      .forEach(File::delete);
   }
 
   @Test
@@ -42,7 +40,7 @@ class RecordProcessorTest {
     final var compiler = ToolProvider.getSystemJavaCompiler();
 
     final var task =
-        compiler.getTask(new PrintWriter(System.out), null, null, Arrays.asList(), null, files);
+      compiler.getTask(new PrintWriter(System.out), null, null, Arrays.asList(), null, files);
     task.setProcessors(Arrays.asList(new RecordProcessor()));
 
     assertThat(task.call()).isTrue();

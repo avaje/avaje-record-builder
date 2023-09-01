@@ -28,9 +28,9 @@ import static java.util.stream.Collectors.toMap;
 @GenerateUtils
 @GenerateAPContext
 @SupportedAnnotationTypes({RecordBuilderPrism.PRISM_TYPE, ImportPrism.PRISM_TYPE})
-public class RecordProcessor extends AbstractProcessor {
+public final class RecordProcessor extends AbstractProcessor {
 
-  static Map<String, String> defaultsMap = new HashMap<>();
+  private static final Map<String, String> defaultsMap = new HashMap<>();
 
   static {
     // TODO add the rest of the collections
@@ -160,25 +160,7 @@ public class RecordProcessor extends AbstractProcessor {
     }
   }
 
-  static String fields(List<? extends RecordComponentElement> components) {
-    final var builder = new StringBuilder();
-    for (final var element : components) {
-      final var type = UType.parse(element.asType());
-
-      final var defaultVal =
-        DefaultInitPrism.getOptionalOn(element)
-          .map(DefaultInitPrism::value)
-          .orElseGet(() -> defaultsMap.getOrDefault(type.mainType(), ""))
-          .transform(s -> s.isBlank() ? s : " = " + s);
-
-      builder.append(
-        "  private %s %s%s;\n".formatted(type.shortType(), element.getSimpleName(), defaultVal));
-    }
-
-    return builder.toString();
-  }
-
-  static String constructorParams(
+  private static String constructorParams(
     List<? extends RecordComponentElement> components, boolean verticalArgs) {
 
     return components.stream()
@@ -187,24 +169,21 @@ public class RecordProcessor extends AbstractProcessor {
       .transform(s -> verticalArgs ? "\n      " + s : s);
   }
 
-  static String constructorBody(List<? extends RecordComponentElement> components) {
-
+  private static String constructorBody(List<? extends RecordComponentElement> components) {
     return components.stream()
       .map(RecordComponentElement::getSimpleName)
       .map(s -> MessageFormat.format("this.{0} = {0};", s))
       .collect(joining("\n    "));
   }
 
-  static String builderFrom(List<? extends RecordComponentElement> components) {
-
+  private static String builderFrom(List<? extends RecordComponentElement> components) {
     return components.stream()
       .map(RecordComponentElement::getSimpleName)
       .map("from.%s()"::formatted)
       .collect(joining(", "));
   }
 
-  static String build(List<? extends RecordComponentElement> components) {
-
+  private static String build(List<? extends RecordComponentElement> components) {
     return components.stream().map(RecordComponentElement::getSimpleName).collect(joining(", "));
   }
 
@@ -233,7 +212,7 @@ public class RecordProcessor extends AbstractProcessor {
     writer.append("}");
   }
 
-  String methodSetter(CharSequence componentName, String type, String shortName) {
+  private String methodSetter(CharSequence componentName, String type, String shortName) {
     return MessageFormat.format(
       """
 
@@ -246,7 +225,7 @@ public class RecordProcessor extends AbstractProcessor {
       componentName, type, shortName.replace(".", "$"));
   }
 
-  String methodGetter(CharSequence componentName, String type, String shortName) {
+  private String methodGetter(CharSequence componentName, String type, String shortName) {
     return MessageFormat.format(
       """
 
@@ -258,7 +237,7 @@ public class RecordProcessor extends AbstractProcessor {
       componentName, type, shortName.replace(".", "$"));
   }
 
-  String methodAdd(String componentName, String type, String shortName, String param0) {
+  private String methodAdd(String componentName, String type, String shortName, String param0) {
     String upperCamal = Character.toUpperCase(componentName.charAt(0)) + componentName.substring(1);
     return MessageFormat.format(
       """
@@ -272,7 +251,7 @@ public class RecordProcessor extends AbstractProcessor {
       componentName, type, shortName.replace(".", "$"), upperCamal, param0);
   }
 
-  String template(
+  private String template(
     String packageName,
     String imports,
     String shortName,

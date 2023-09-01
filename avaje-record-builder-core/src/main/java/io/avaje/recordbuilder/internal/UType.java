@@ -11,7 +11,7 @@ import java.util.StringJoiner;
 
 import javax.lang.model.type.TypeMirror;
 
-public interface UType {
+interface UType {
 
   /** Create the UType from the given TypeMirror. */
   static UType parse(TypeMirror returnType) {

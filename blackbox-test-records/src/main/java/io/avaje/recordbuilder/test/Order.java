@@ -6,20 +6,20 @@ import java.util.List;
 
 @RecordBuilder
 public record Order(
-        long id,
-        Customer customer,
-        List<OrderLine> lines
+  long id,
+  Customer customer,
+  List<OrderLine> lines
 ) {
 
-    /**
-     * Return a new builder for Order
-     */
-    public static OrderBuilder builder() {
-        return OrderBuilder.builder();
-    }
+  /**
+   * Return a new builder for Order
+   */
+  public static OrderBuilder builder() {
+    return OrderBuilder.builder();
+  }
 
-    public static OrderBuilder from(Order source) {
-        return OrderBuilder.builder(source);
-    }
+  public static OrderBuilder from(Order source) {
+    return OrderBuilder.builder(source);
+  }
 
 }
