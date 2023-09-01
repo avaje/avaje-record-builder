@@ -289,6 +289,7 @@ public class RecordProcessor extends AbstractProcessor {
         {1}
 
         /**  Builder class for '{'@link {2}'}' */
+        @Generated("avaje-record-builder")
         public class {2}Builder '{'
         {3}
           private {2}Builder() '{'

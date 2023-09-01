@@ -28,6 +28,7 @@ public class RecordModel {
     this.type = type;
     this.isImported = isImported;
     this.components = components;
+    importTypes.add("io.avaje.recordbuilder.Generated");
   }
 
   void initialImports() {
@@ -70,8 +71,8 @@ public class RecordModel {
       }
 
       builder.append(
-          "  private %s %s%s;  // -- %s\n"
-              .formatted(uType.shortType(), element.getSimpleName(), defaultVal, uType.mainType()));
+          "  private %s %s%s;\n"
+              .formatted(uType.shortType(), element.getSimpleName(), defaultVal));
     }
 
     return builder.toString();
