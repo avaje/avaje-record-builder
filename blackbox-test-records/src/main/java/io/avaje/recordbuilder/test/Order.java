@@ -11,7 +11,15 @@ public record Order(
         List<OrderLine> lines
 ) {
 
+    /**
+     * Return a new builder for Order
+     */
     public static OrderBuilder builder() {
         return OrderBuilder.builder();
     }
+
+    public static OrderBuilder from(Order source) {
+        return OrderBuilder.builder(source);
+    }
+
 }
