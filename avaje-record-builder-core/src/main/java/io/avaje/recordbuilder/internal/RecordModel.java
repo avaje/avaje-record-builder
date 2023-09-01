@@ -35,6 +35,7 @@ final class RecordModel {
     this.isImported = isImported;
     this.components = components;
     importTypes.add("io.avaje.recordbuilder.Generated");
+    importTypes.add("java.util.function.Consumer");
   }
 
   void initialImports() {

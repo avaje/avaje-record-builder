@@ -1,6 +1,7 @@
 package io.avaje.recordbuilder.internal;
 
 import java.text.MessageFormat;
+import java.util.function.Consumer;
 
 public class Templates {
   private Templates() {}
@@ -55,6 +56,21 @@ public class Templates {
 
 		   """,
         packageName, imports, shortName, fields, constructor, constructorBody, builderFrom, build);
+  }
+
+  static String transformers(String shortName) {
+    return MessageFormat.format(
+        """
+		     /**
+		      * Modify this builder with the given consumer
+		      */
+		     public {0}Builder transform(Consumer<{0}Builder> builder{0}) '{'
+		         builder{0}.accept(this);
+		         return this;
+		     '}'
+
+		   """,
+        shortName.replace(".", "$"));
   }
 
   static String methodSetter(CharSequence componentName, String type, String shortName) {

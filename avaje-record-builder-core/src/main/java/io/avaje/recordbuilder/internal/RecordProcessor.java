@@ -117,6 +117,8 @@ public final class RecordProcessor extends AbstractProcessor {
 
     boolean getters = Boolean.TRUE.equals(writeGetters);
 
+    writer.append(transformers(shortName));
+
     for (final var element : components) {
       final var type = UType.parse(element.asType());
       writer.append(methodSetter(element.getSimpleName(), type.shortType(), shortName));
