@@ -17,12 +17,12 @@ class OrderTest {
         var order = Order.builder()
                 .id(42)
                 .customer(Customer.builder().id(99).name("fred").build())
-                //.addLine(new OrderLine(42, product93, 1034))
-                //.addLine(new OrderLine(42, product93, 1034))
+                .addLines(new OrderLine(42, product93, 1034))
+                .addLines(new OrderLine(42, product93, 1034))
                 .build();
 
         assertThat(order.id()).isEqualTo(42);
-        //assertThat(order.lines()).isEmpty();
+        assertThat(order.lines()).isNotEmpty();
 
         Order fromOrder = Order.from(order)
                 .id(95)

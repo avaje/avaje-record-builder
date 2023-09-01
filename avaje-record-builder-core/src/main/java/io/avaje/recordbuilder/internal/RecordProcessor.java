@@ -13,7 +13,6 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -21,6 +20,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
@@ -217,24 +217,31 @@ public class RecordProcessor extends AbstractProcessor {
       String shortName,
       List<? extends RecordComponentElement> components,
       Boolean writeGetters) {
-    for (final var element : components) {
-      final var type = UType.parse(element.asType());
 
-      writer.append(
-          Boolean.TRUE.equals(writeGetters)
-              ? methodTemplateGetter(element.getSimpleName(), type.shortType(), shortName)
-              : methodTemplate(element.getSimpleName(), type.shortType(), shortName));
+      boolean getters = Boolean.TRUE.equals(writeGetters);
+
+      for (final var element : components) {
+          final var type = UType.parse(element.asType());
+          writer.append(methodSetter(element.getSimpleName(), type.shortType(), shortName));
+          if (getters) {
+              writer.append(methodGetter(element.getSimpleName(), type.shortType(), shortName));
+          }
+          TypeElement typeElement = asTypeElement(element.asType());
+          if (APContext.isAssignable(typeElement, "java.util.Collection")) {
+              String param0 = type.param0();
+              String param0ShortType = UType.parse(param0).shortType();
+              Name simpleName = element.getSimpleName();
+              writer.append(methodAdd(simpleName.toString(), type.shortType(), shortName, param0ShortType));
+          }
     }
     writer.append("}");
   }
 
-  String methodTemplate(CharSequence componentName, String type, String shortName) {
-
+  String methodSetter(CharSequence componentName, String type, String shortName) {
     return MessageFormat.format(
         """
-  	        /**
-  	         * Set a new value for the '{'@code {0}'}' record component in the builder
-  	         */
+           
+  	        /** Set a new value for '{'@code {0}'}'. */
   	        public {2}Builder {0}({1} {0}) '{'
   	            this.{0} = {0};
   	            return this;
@@ -243,28 +250,31 @@ public class RecordProcessor extends AbstractProcessor {
         componentName, type, shortName.replace(".", "$"));
   }
 
-  String methodTemplateGetter(CharSequence componentName, String type, String shortName) {
-
+  String methodGetter(CharSequence componentName, String type, String shortName) {
     return MessageFormat.format(
-        """
-	  	        /**
-	  	         * Set a new value for the '{'@code {0}'}' record component in the builder
-	  	         */
-	  	        public {2}Builder {0}({1} {0}) '{'
-	  	            this.{0} = {0};
-	  	            return this;
-	  	        '}'
-
-	  	        /**
-	  	         * Return the current value for the '{'@code {0}'}' record component in the builder
-	  	         */
-	  	        public {1} {0}() '{'
-	  	            return {0};
-	  	        '}'
-
-	  	      """,
+    """
+            
+            /** Return the current value for '{'@code {0}'}'. */
+            public {1} {0}() '{'
+                return {0};
+            '}'
+          """,
         componentName, type, shortName.replace(".", "$"));
   }
+
+    String methodAdd(String componentName, String type, String shortName, String param0) {
+      String upperCamal = Character.toUpperCase(componentName.charAt(0)) + componentName.substring(1);
+        return MessageFormat.format(
+        """
+                
+                /** Add to the '{'@code {0}'}'. */
+                public {2}Builder add{3}({4} element) '{'
+                    this.{0}.add(element);
+                    return this;
+                '}'
+              """,
+        componentName, type, shortName.replace(".", "$"), upperCamal, param0);
+    }
 
   String template(
       String packageName,
