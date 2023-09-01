@@ -1,8 +1,8 @@
 package io.avaje.recordbuilder.test;
 
-import io.avaje.recordbuilder.RecordBuilder;
+import io.avaje.recordbuilder.Builder;
 
-@RecordBuilder(getters = true)
+@Builder(getters = true)
 public record Address(
   String line1,
   String line2,

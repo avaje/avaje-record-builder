@@ -1,10 +1,10 @@
 package io.avaje.recordbuilder.test;
 
-import io.avaje.recordbuilder.RecordBuilder;
+import io.avaje.recordbuilder.Builder;
 
 import java.util.List;
 
-@RecordBuilder
+@Builder
 public record Order(
   long id,
   Customer customer,

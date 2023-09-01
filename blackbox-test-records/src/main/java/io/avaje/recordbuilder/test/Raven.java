@@ -1,8 +1,8 @@
 package io.avaje.recordbuilder.test;
 
-import io.avaje.recordbuilder.RecordBuilder;
+import io.avaje.recordbuilder.Builder;
 
-@RecordBuilder
+@Builder
 public record Raven(
   int ap,
   String coreName,
@@ -12,7 +12,7 @@ public record Raven(
   Weapon rShoulder,
   Weapon lShoulder) {
 
-  @RecordBuilder // @DefaultInit("5_000")
+  @Builder // @DefaultInit("5_000")
   public record Weapon(int cost, String name, DamageType type) {
   }
 }

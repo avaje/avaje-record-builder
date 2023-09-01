@@ -1,8 +1,8 @@
 package io.avaje.recordbuilder.test;
 
-import io.avaje.recordbuilder.RecordBuilder;
+import io.avaje.recordbuilder.Builder;
 
-@RecordBuilder
+@Builder
 public record Product(
   long id,
   String sku,

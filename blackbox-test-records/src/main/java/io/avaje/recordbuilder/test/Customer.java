@@ -1,11 +1,11 @@
 package io.avaje.recordbuilder.test;
 
-import io.avaje.recordbuilder.RecordBuilder;
+import io.avaje.recordbuilder.Builder;
 
 import java.time.LocalDate;
 import java.util.Locale;
 
-@RecordBuilder
+@Builder
 public record Customer(
   long id,
   String name,
