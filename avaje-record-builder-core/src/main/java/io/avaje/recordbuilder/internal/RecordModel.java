@@ -15,7 +15,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 
-public class RecordModel {
+final class RecordModel {
 
   private final TypeElement type;
   private final boolean isImported;
@@ -23,8 +23,7 @@ public class RecordModel {
 
   private final Set<String> importTypes = new TreeSet<>();
 
-  public RecordModel(
-      TypeElement type, boolean isImported, List<? extends RecordComponentElement> components) {
+  RecordModel(TypeElement type, boolean isImported, List<? extends RecordComponentElement> components) {
     this.type = type;
     this.isImported = isImported;
     this.components = components;
