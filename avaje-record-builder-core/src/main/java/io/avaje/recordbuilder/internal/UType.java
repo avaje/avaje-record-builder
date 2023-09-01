@@ -92,6 +92,11 @@ interface UType {
     public String mainType() {
       return rawType;
     }
+
+    @Override
+    public String toString() {
+      return rawType;
+    }
   }
 
   /** Generic type. */
@@ -120,6 +125,11 @@ interface UType {
 
     @Override
     public String full() {
+      return rawType;
+    }
+
+    @Override
+    public String toString() {
       return rawType;
     }
 
