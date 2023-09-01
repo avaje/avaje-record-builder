@@ -13,6 +13,7 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -36,12 +37,34 @@ public class RecordProcessor extends AbstractProcessor {
   static Map<String, String> defaultsMap = new HashMap<>();
 
   static {
-    final var util = "java.util.%s";
-    // var init = "new %s()";
-    // var initDiamond = "new %s<>()";
-    defaultsMap.put(util.formatted("List"), "java.util.ArrayList");
-    defaultsMap.put(util.formatted("ArrayList"), util.formatted("ArrayList"));
-    defaultsMap.put(util.formatted("LinkedList"), util.formatted("LinkedList"));
+    // TODO add the rest of the collections
+    final var util = "java.util.";
+    defaultsMap.put(util + "Collection", util + "ArrayList");
+    defaultsMap.put(util + "SequencedCollection", util + "ArrayList");
+    // list
+    defaultsMap.put(util + "List", util + "ArrayList");
+    defaultsMap.put(util + "ArrayList", util + "ArrayList");
+    defaultsMap.put(util + "LinkedList", util + "LinkedList");
+    // set
+    defaultsMap.put(util + "Set", util + "HashSet");
+    defaultsMap.put(util + "SequencedSet", util + "LinkedHashSet");
+    defaultsMap.put(util + "HashSet", util + "HashSet");
+    defaultsMap.put(util + "TreeSet", util + "TreeSet");
+    defaultsMap.put(util + "SortedSet", util + "TreeSet");
+    defaultsMap.put(util + "NavigableSet", util + "TreeSet");
+    defaultsMap.put(util + "LinkedHashSet", util + "LinkedHashSet");
+    // map
+    defaultsMap.put(util + "Map", util + "HashMap");
+    defaultsMap.put(util + "SequencedMap", util + "LinkedHashMap");
+    defaultsMap.put(util + "HashMap", util + "HashMap");
+    defaultsMap.put(util + "LinkedHashMap", util + "LinkedHashMap");
+    defaultsMap.put(util + "TreeMap", util + "TreeMap");
+    defaultsMap.put(util + "SortedMap", util + "TreeMap");
+    defaultsMap.put(util + "NavigableMap", util + "TreeMap");
+
+    // queue
+
+    // deque
   }
 
   @Override

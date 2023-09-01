@@ -50,24 +50,28 @@ public class RecordModel {
   String fields(Map<String, String> defaultsMap) {
     final var builder = new StringBuilder();
     for (final var element : components) {
-      final var type = UType.parse(element.asType());
+      final var uType = UType.parse(element.asType());
 
       String defaultVal = "";
       final DefaultInitPrism initPrism = DefaultInitPrism.getInstanceOn(element);
       if (initPrism != null) {
         defaultVal = " = " + initPrism.value();
       } else {
-        final String dt = defaultsMap.get(type.mainType());
+        final String dt = defaultsMap.get(uType.mainType());
         if (dt != null) {
-          importTypes.add(dt);
-
-          defaultVal = " = new " + ProcessorUtils.shortType(dt) + "<>()";
+          var javaUtil = dt.startsWith("java.util");
+          if (javaUtil) {
+            importTypes.add(dt);
+            defaultVal = " = new " + ProcessorUtils.shortType(dt) + "<>()";
+          } else {
+            defaultVal = " = " + dt;
+          }
         }
       }
 
       builder.append(
           "  private %s %s%s;  // -- %s\n"
-              .formatted(type.shortType(), element.getSimpleName(), defaultVal, type.mainType()));
+              .formatted(uType.shortType(), element.getSimpleName(), defaultVal, uType.mainType()));
     }
 
     return builder.toString();
