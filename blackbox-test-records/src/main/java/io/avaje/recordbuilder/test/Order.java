@@ -4,13 +4,18 @@ import io.avaje.recordbuilder.RecordBuilder;
 
 import java.util.List;
 
-@RecordBuilder
+@RecordBuilder(getters = true)
 public record Order(
   long id,
+  Status status,
   Customer customer,
   List<OrderLine> lines
 ) {
-
+  public enum Status {
+    NEW,
+    IN_PROGRESS,
+    COMPLETE
+  }
   /**
    * Return a new builder for Order
    */

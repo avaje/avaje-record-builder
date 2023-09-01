@@ -6,13 +6,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class OrderTest {
 
+  private final Product product93 = Product.builder()
+    .id(93)
+    .sku("HSDJ")
+    .build();
+
   @Test
   void build() {
-
-    var product93 = Product.builder()
-      .id(93)
-      .sku("HSDJ")
-      .build();
 
     var order = Order.builder()
       .id(42)
@@ -31,4 +31,32 @@ class OrderTest {
     assertThat(fromOrder.id()).isEqualTo(95);
     assertThat(fromOrder.customer()).isSameAs(order.customer());
   }
+
+//  @Test
+//  void transform() {
+//    var original = Order.builder()
+//      .id(42)
+//      .customer(Customer.builder().id(99).name("fred").build())
+//      .addLines(new OrderLine(42, product93, 1034))
+//      .addLines(new OrderLine(42, product93, 1034))
+//      .build();
+//
+//    var transformedOrder =
+//      Order.from(original)
+//        .transform(orderBuilder -> {
+//          if (orderBuilder.status() == Order.Status.NEW) {
+//            orderBuilder.status(Order.Status.COMPLETE);
+//
+//            // transform a nested collection
+//            List<OrderLine> newLines = orderBuilder.lines().stream()
+//              .filter(line -> line.id() < 43)
+//              .toList();
+//
+//            orderBuilder.lines(newLines);
+//          }
+//        })
+//        .build();
+//
+//    assertThat(transformedOrder.status()).isEqualTo(Order.Status.COMPLETE);
+//  }
 }
