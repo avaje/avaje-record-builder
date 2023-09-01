@@ -13,7 +13,7 @@ import javax.lang.model.element.TypeElement;
 // TODO better name?
 public class ClassBodyBuilder {
 
-  static String readElement(TypeElement type, boolean isImported) {
+  static String createClassStart(TypeElement type, boolean isImported) {
 
     final var components = type.getRecordComponents();
     final var packageName =

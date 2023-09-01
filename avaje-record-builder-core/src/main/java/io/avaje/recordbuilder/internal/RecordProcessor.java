@@ -101,7 +101,7 @@ public final class RecordProcessor extends AbstractProcessor {
     try (var writer =
         new Append(createSourceFile(packageName + "." + shortName + "Builder").openWriter())) {
 
-      writer.append(ClassBodyBuilder.readElement(type, isImported));
+      writer.append(ClassBodyBuilder.createClassStart(type, isImported));
       final var writeGetters = RecordBuilderPrism.getInstanceOn(type).getters();
       methods(writer, shortName, components, writeGetters);
     } catch (final IOException e) {
