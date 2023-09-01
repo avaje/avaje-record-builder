@@ -24,5 +24,12 @@ class OrderTest {
 
         assertThat(order.id()).isEqualTo(42);
         //assertThat(order.lines()).isEmpty();
+
+        Order fromOrder = Order.from(order)
+                .id(95)
+                .build();
+
+        assertThat(fromOrder.id()).isEqualTo(95);
+        assertThat(fromOrder.customer()).isSameAs(order.customer());
     }
 }
