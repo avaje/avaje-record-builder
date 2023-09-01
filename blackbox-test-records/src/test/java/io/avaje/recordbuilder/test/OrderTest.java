@@ -1,8 +1,10 @@
 package io.avaje.recordbuilder.test;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
 
 class OrderTest {
 
@@ -32,31 +34,32 @@ class OrderTest {
     assertThat(fromOrder.customer()).isSameAs(order.customer());
   }
 
-//  @Test
-//  void transform() {
-//    var original = Order.builder()
-//      .id(42)
-//      .customer(Customer.builder().id(99).name("fred").build())
-//      .addLines(new OrderLine(42, product93, 1034))
-//      .addLines(new OrderLine(42, product93, 1034))
-//      .build();
-//
-//    var transformedOrder =
-//      Order.from(original)
-//        .transform(orderBuilder -> {
-//          if (orderBuilder.status() == Order.Status.NEW) {
-//            orderBuilder.status(Order.Status.COMPLETE);
-//
-//            // transform a nested collection
-//            List<OrderLine> newLines = orderBuilder.lines().stream()
-//              .filter(line -> line.id() < 43)
-//              .toList();
-//
-//            orderBuilder.lines(newLines);
-//          }
-//        })
-//        .build();
-//
-//    assertThat(transformedOrder.status()).isEqualTo(Order.Status.COMPLETE);
-//  }
+  @Test
+  void transform() {
+    var original = Order.builder()
+      .id(42)
+      .customer(Customer.builder().id(99).name("fred").build())
+      .addLines(new OrderLine(42, product93, 1034))
+      .addLines(new OrderLine(42, product93, 1034))
+      .status(Order.Status.NEW)
+      .build();
+
+    var transformedOrder =
+      Order.from(original)
+        .transform(orderBuilder -> {
+          if (orderBuilder.status() == Order.Status.NEW) {
+            orderBuilder.status(Order.Status.COMPLETE);
+
+            // transform a nested collection
+            List<OrderLine> newLines = orderBuilder.lines().stream()
+              .filter(line -> line.id() < 43)
+              .toList();
+
+            orderBuilder.lines(newLines);
+          }
+        })
+        .build();
+
+    assertThat(transformedOrder.status()).isEqualTo(Order.Status.COMPLETE);
+  }
 }
