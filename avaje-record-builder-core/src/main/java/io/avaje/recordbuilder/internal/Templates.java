@@ -118,7 +118,7 @@ public class Templates {
 
 		     /** Add new key/value pair to the '{'@code {0}'}' map. */
 		     public {2}Builder put{3}({4} key, {5} value) '{'
-		         this.{0}.add(element);
+		         this.{0}.put(key, value);
 		         return this;
 		     '}'
 		   """,

@@ -125,15 +125,16 @@ public final class RecordProcessor extends AbstractProcessor {
       if (getters) {
         writer.append(methodGetter(element.getSimpleName(), type.shortType(), shortName));
       }
-      TypeElement typeElement = asTypeElement(element.asType());
-      if (APContext.isAssignable(typeElement, "java.util.Collection")) {
+
+      if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {
         String param0 = type.param0();
         String param0ShortType = UType.parse(param0).shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
             methodAdd(simpleName.toString(), type.shortType(), shortName, param0ShortType));
       }
-      if (APContext.isAssignable(typeElement, "java.util.Map")) {
+
+      if (APContext.isAssignable(type.mainType(), "java.util.Map")) {
         String param0 = type.param0();
         String param0ShortType = UType.parse(param0).shortType();
         String param1 = type.param1();
