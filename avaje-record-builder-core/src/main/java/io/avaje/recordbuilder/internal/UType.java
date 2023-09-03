@@ -18,6 +18,7 @@ interface UType {
 
     return parse(returnType.toString());
   }
+
   /** Create the UType from the given String. */
   static UType parse(String rawType) {
     final var type = ProcessorUtils.trimAnnotations(rawType);
