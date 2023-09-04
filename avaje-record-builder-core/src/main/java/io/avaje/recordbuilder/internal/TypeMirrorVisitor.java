@@ -43,6 +43,8 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
   private final List<AnnotationMirror> annotations = new ArrayList<>();
   private List<AnnotationMirror> everyAnnotation = new ArrayList<>();
 
+  private String shortType;
+
   public static TypeMirrorVisitor create(TypeMirror typeMirror) {
     final var v = new TypeMirrorVisitor(1, Map.of());
     final StringBuilder b = new StringBuilder();
@@ -50,8 +52,15 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
     return v;
   }
 
-  TypeMirrorVisitor() {
+  private TypeMirrorVisitor() {
     this(1, new HashMap<>());
+  }
+
+  private TypeMirrorVisitor(int depth, Map<TypeVariable, String> typeVariables) {
+    this.includeAnnotations = true;
+    this.depth = depth;
+    this.typeVariables = new HashMap<>();
+    this.typeVariables.putAll(typeVariables);
   }
 
   @Override
@@ -61,13 +70,20 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
   @Override
   public String shortType() {
-
-    return shortRawType(fullType, allTypes);
+    if (shortType == null) {
+      shortType = shortRawType(fullType, allTypes);
+    }
+    return shortType;
   }
 
   @Override
   public String full() {
     return fullType;
+  }
+
+  @Override
+  public String fullWithoutAnnotations() {
+    return ProcessorUtils.trimAnnotations(fullType);
   }
 
   @Override
@@ -102,7 +118,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
   @Override
   public UType param1() {
-    return allTypes.size() < 2 ? null : params.get(1);
+    return params.size() < 2 ? null : params.get(1);
   }
 
   private static String shortRawType(String rawType, Set<String> allTypes) {
@@ -115,13 +131,6 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
       shortRaw = shortRaw.replace(entry.getKey(), entry.getValue());
     }
     return shortRaw;
-  }
-
-  private TypeMirrorVisitor(int depth, Map<TypeVariable, String> typeVariables) {
-    this.includeAnnotations = true;
-    this.depth = depth;
-    this.typeVariables = new HashMap<>();
-    this.typeVariables.putAll(typeVariables);
   }
 
   private void child(TypeMirror ct, StringBuilder p) {
@@ -225,7 +234,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
       return element.getQualifiedName().toString();
     }
     final StringBuilder sb = new StringBuilder();
-    // if not too nested write annotations before the fqn like
+    // if not too nested, write annotations before the fqn like @someAnnotation io.YourType
     if (depth < 3) {
       for (final var ta : typeUseAnnotations) {
         sb.append(ta.toString()).append(" ");
@@ -240,7 +249,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
     }
     sb.append(enclosedPart);
 
-    // if too nested write annotations within the fqn
+    // if too nested, write annotations in the fqn like io.@someAnnotation YourType
     if (depth > 2) {
       for (final var ta : typeUseAnnotations) {
         sb.append(ta.toString()).append(" ");

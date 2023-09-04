@@ -58,4 +58,6 @@ interface UType {
   default List<AnnotationMirror> allAnnotationsInType() {
     return List.of();
   }
+
+  String fullWithoutAnnotations();
 }
