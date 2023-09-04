@@ -39,20 +39,13 @@ final class RecordModel {
   }
 
   void initialImports() {
-    final Set<String> types =
-        components.stream()
-            .map(RecordComponentElement::asType)
-            .filter(not(PrimitiveType.class::isInstance))
-            .map(TypeMirror::toString)
-            .map(ProcessorUtils::trimAnnotations)
-            .flatMap(s -> Arrays.stream(s.split("[<|>|,]")))
-            .map(Utils::extractTypeWithNest)
-            .distinct()
-            .filter(not(String::isBlank))
-            .filter(s -> !s.startsWith("java.lang"))
-            .collect(Collectors.toSet());
 
-    importTypes.addAll(types);
+    components.stream()
+        .map(RecordComponentElement::asType)
+        .filter(not(PrimitiveType.class::isInstance))
+        .map(TypeMirrorVisitor::create)
+        .map(UType::importTypes)
+        .forEach(importTypes::addAll);
   }
 
   String fields() {
@@ -87,7 +80,11 @@ final class RecordModel {
       }
 
       builder.append(
-          "  private %s %s%s;\n".formatted(uType.shortType(), element.getSimpleName(), defaultVal));
+          "  private %s %s%s;\n"
+              .formatted(
+                  uType.shortType().transform(ProcessorUtils::trimAnnotations),
+                  element.getSimpleName(),
+                  defaultVal));
     }
 
     return builder.toString();
