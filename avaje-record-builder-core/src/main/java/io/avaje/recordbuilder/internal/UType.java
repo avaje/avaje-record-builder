@@ -45,14 +45,16 @@ interface UType {
     return false;
   }
 
+  /** Return the generic param UType for the parameters. */
   default List<UType> genericParams() {
     return List.of();
   }
-
+  /** Return the annonataion mirrors directly on the type. */
   default List<AnnotationMirror> annotations() {
     return List.of();
   }
 
+  /** Return the annonataion mirrors directly on the type and in generic type use. */
   default List<AnnotationMirror> allAnnotationsInType() {
     return List.of();
   }

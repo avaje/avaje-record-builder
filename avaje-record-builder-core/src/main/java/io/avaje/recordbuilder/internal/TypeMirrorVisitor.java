@@ -225,6 +225,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
       return element.getQualifiedName().toString();
     }
     final StringBuilder sb = new StringBuilder();
+    // if not too nested write annotations before the fqn like
     if (depth < 3) {
       for (final var ta : typeUseAnnotations) {
         sb.append(ta.toString()).append(" ");
@@ -238,6 +239,8 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
       enclosedPart = "";
     }
     sb.append(enclosedPart);
+
+    // if too nested write annotations within the fqn
     if (depth > 2) {
       for (final var ta : typeUseAnnotations) {
         sb.append(ta.toString()).append(" ");
