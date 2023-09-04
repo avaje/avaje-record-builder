@@ -145,7 +145,12 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
         everyAnnotation.add(ta);
       }
     }
-    p.append(t.getKind().toString().toLowerCase(Locale.ROOT));
+
+    var primitiveStr = t.getKind().toString().toLowerCase(Locale.ROOT);
+    if (this.mainType == null) {
+      mainType = primitiveStr;
+    }
+    p.append(primitiveStr);
 
     return p;
   }
@@ -157,6 +162,8 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
   @Override
   public StringBuilder visitArray(ArrayType t, StringBuilder p) {
+
+    boolean mainUnset = this.mainType == null;
     final var ct = t.getComponentType();
     child(ct, p);
     boolean first = true;
@@ -172,6 +179,9 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
       }
     }
     p.append("[]");
+    if (mainUnset) {
+      mainType += "[]";
+    }
     return p;
   }
 
@@ -245,6 +255,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
   @Override
   public StringBuilder visitTypeVariable(TypeVariable t, StringBuilder p) {
+
     /*
      * Types can be recursive so we have to check if we have already done this type.
      */
