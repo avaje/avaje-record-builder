@@ -82,11 +82,6 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
   }
 
   @Override
-  public String fullWithoutAnnotations() {
-    return ProcessorUtils.trimAnnotations(fullType);
-  }
-
-  @Override
   public boolean isGeneric() {
     return fullType.contains("<");
   }
@@ -133,7 +128,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
     return shortRaw;
   }
 
-  private void child(TypeMirror ct, StringBuilder p) {
+  private void child(TypeMirror ct, StringBuilder p, boolean setMain) {
 
     var child = new TypeMirrorVisitor(depth + 1, typeVariables);
     child.allTypes = allTypes;
@@ -142,6 +137,13 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
     child.fullType = full;
     params.add(child);
     p.append(full);
+    if (setMain) {
+      mainType = child.mainType;
+    }
+  }
+
+  private void child(TypeMirror ct, StringBuilder p) {
+    child(ct, p, false);
   }
 
   @Override
@@ -174,7 +176,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
     boolean mainUnset = this.mainType == null;
     final var ct = t.getComponentType();
-    child(ct, p);
+    child(ct, p, true);
     boolean first = true;
     if (includeAnnotations) {
       for (final var ta : t.getAnnotationMirrors()) {
@@ -224,12 +226,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
   String fullyQualfiedName(DeclaredType t, boolean includeAnnotations) {
     final TypeElement element = (TypeElement) t.asElement();
     final var typeUseAnnotations = t.getAnnotationMirrors();
-    for (final var ta : typeUseAnnotations) {
-      final TypeElement annotation = (TypeElement) ta.getAnnotationType().asElement();
-      allTypes.add(annotation.getQualifiedName().toString());
-      annotations.add(ta);
-      everyAnnotation.add(ta);
-    }
+
     if (typeUseAnnotations.isEmpty() || !includeAnnotations) {
       return element.getQualifiedName().toString();
     }
@@ -255,7 +252,13 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
         sb.append(ta.toString()).append(" ");
       }
     }
+    for (final var ta : typeUseAnnotations) {
 
+      final TypeElement annotation = (TypeElement) ta.getAnnotationType().asElement();
+      allTypes.add(annotation.getQualifiedName().toString());
+      annotations.add(ta);
+      everyAnnotation.add(ta);
+    }
     sb.append(element.getSimpleName());
     return sb.toString();
   }

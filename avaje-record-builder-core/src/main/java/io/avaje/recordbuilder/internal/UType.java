@@ -23,6 +23,9 @@ interface UType {
   /** Return the main type (outer most type). */
   String mainType();
 
+  /** Return the full type as a string. */
+  String full();
+
   /** Return the first generic parameter. */
   default UType param0() {
     return null;
@@ -38,26 +41,32 @@ interface UType {
     return null;
   }
 
-  /** Return the raw type. */
-  String full();
-
   default boolean isGeneric() {
     return false;
   }
 
-  /** Return the generic param UType for the parameters. */
+  /** Return the UTypes for the generic parameters. */
   default List<UType> genericParams() {
     return List.of();
   }
-  /** Return the annonataion mirrors directly on the type. */
+
+  /** Return the annotation mirrors directly on the type. */
   default List<AnnotationMirror> annotations() {
     return List.of();
   }
 
-  /** Return the annonataion mirrors directly on the type and in generic type use. */
+  /** Return the annotation mirrors directly on the type and in generic type use. */
   default List<AnnotationMirror> allAnnotationsInType() {
     return List.of();
   }
 
-  String fullWithoutAnnotations();
+  /** Return the full type as a string stripped of annotations. */
+  default String fullWithoutAnnotations() {
+    return ProcessorUtils.trimAnnotations(full());
+  }
+
+  /** Return the short type as a string stripped of annotations. */
+  default String shortWithoutAnnotations() {
+    return ProcessorUtils.trimAnnotations(shortType());
+  }
 }
