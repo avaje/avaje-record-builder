@@ -121,7 +121,11 @@ public final class RecordProcessor extends AbstractProcessor {
       final var type = UType.parse(element.asType());
       writer.append(methodSetter(element.getSimpleName(), type.shortType(), shortName));
       if (getters) {
-        writer.append(methodGetter(element.getSimpleName(), type.shortType(), shortName));
+        writer.append(
+            methodGetter(
+                element.getSimpleName(),
+                type.shortType().transform(ProcessorUtils::trimAnnotations),
+                shortName));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {
@@ -134,13 +138,13 @@ public final class RecordProcessor extends AbstractProcessor {
 
       if (APContext.isAssignable(type.mainType(), "java.util.Map")) {
 
-        String param0ShortType =  type.param0().shortType();
+        String param0ShortType = type.param0().shortType();
         String param1ShortType = type.param1().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
             methodPut(
                 simpleName.toString(),
-                type.shortType(),
+                type.shortType().transform(ProcessorUtils::trimAnnotations),
                 shortName,
                 param0ShortType,
                 param1ShortType));
