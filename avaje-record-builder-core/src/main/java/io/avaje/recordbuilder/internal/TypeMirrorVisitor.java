@@ -21,14 +21,14 @@ import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.NullType;
 import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.AbstractTypeVisitor9;
 
-// TODO make this not ugly
-public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, StringBuilder>
+class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, StringBuilder>
     implements UType {
 
   private final int depth;
@@ -42,8 +42,8 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
   private final List<UType> params = new ArrayList<>();
   private final List<AnnotationMirror> annotations = new ArrayList<>();
   private List<AnnotationMirror> everyAnnotation = new ArrayList<>();
-
   private String shortType;
+  private TypeKind kind;
 
   public static TypeMirrorVisitor create(TypeMirror typeMirror) {
     final var v = new TypeMirrorVisitor(1, Map.of());
@@ -87,7 +87,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
   }
 
   @Override
-  public List<UType> genericParams() {
+  public List<UType> componentTypes() {
     return params;
   }
 
@@ -116,13 +116,18 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
     return params.size() < 2 ? null : params.get(1);
   }
 
+  @Override
+  public TypeKind kind() {
+    return kind;
+  }
+
   private static String shortRawType(String rawType, Set<String> allTypes) {
     final Map<String, String> typeMap = new LinkedHashMap<>();
     for (final String val : allTypes) {
       typeMap.put(val, ProcessorUtils.shortType(val));
     }
     String shortRaw = rawType;
-    for (final Map.Entry<String, String> entry : typeMap.entrySet()) {
+    for (final var entry : typeMap.entrySet()) {
       shortRaw = shortRaw.replace(entry.getKey(), entry.getValue());
     }
     return shortRaw;
@@ -148,7 +153,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
   @Override
   public StringBuilder visitPrimitive(PrimitiveType t, StringBuilder p) {
-
+    kind = t.getKind();
     if (includeAnnotations) {
       for (final var ta : t.getAnnotationMirrors()) {
         p.append(ta.toString()).append(" ");
@@ -173,7 +178,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
   @Override
   public StringBuilder visitArray(ArrayType t, StringBuilder p) {
-
+    kind = t.getKind();
     boolean mainUnset = this.mainType == null;
     final var ct = t.getComponentType();
     child(ct, p, true);
@@ -198,6 +203,7 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
   @Override
   public StringBuilder visitDeclared(DeclaredType t, StringBuilder p) {
+    kind = t.getKind();
     final String fqn = fullyQualfiedName(t, includeAnnotations);
     var trimmed = fullyQualfiedName(t, false);
     if (!fqn.startsWith("java.lang")) {
@@ -239,8 +245,8 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
     }
     String enclosedPart;
     final Element enclosed = element.getEnclosingElement();
-    if (enclosed instanceof final QualifiedNameable qn) {
-      enclosedPart = qn.getQualifiedName().toString() + ".";
+    if (enclosed instanceof QualifiedNameable) {
+      enclosedPart = ((QualifiedNameable) enclosed).getQualifiedName().toString() + ".";
     } else {
       enclosedPart = "";
     }
@@ -265,12 +271,13 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
   @Override
   public StringBuilder visitError(ErrorType t, StringBuilder p) {
+    kind = t.getKind();
     return p;
   }
 
   @Override
   public StringBuilder visitTypeVariable(TypeVariable t, StringBuilder p) {
-
+    kind = t.getKind();
     /*
      * Types can be recursive so we have to check if we have already done this type.
      */
@@ -280,7 +287,9 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
       p.append(previous);
       return p;
     }
+
     final StringBuilder sb = new StringBuilder();
+
     /*
      * We do not have to print the upper and lower bound as those are defined usually
      * on the method.
@@ -291,17 +300,28 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
         sb.append(ta.toString()).append(" ");
       }
     }
-    p.append(t.asElement().getSimpleName().toString());
-    sb.append(t.asElement().getSimpleName().toString());
+    var name = t.asElement().getSimpleName().toString();
+    if (mainType == null) {
+      mainType = name;
+    }
+
+    p.append(name);
+    sb.append(name);
     typeVariables.put(t, sb.toString());
+    var upperBound = t.getUpperBound();
+    if (upperBound != null) {
+      child(upperBound, new StringBuilder());
+    }
 
     return p;
   }
 
   @Override
   public StringBuilder visitWildcard(WildcardType t, StringBuilder p) {
+    kind = t.getKind();
     final var extendsBound = t.getExtendsBound();
     final var superBound = t.getSuperBound();
+    kind = t.getKind();
     for (final var ta : t.getAnnotationMirrors()) {
       p.append(ta.toString()).append(" ");
     }
@@ -329,12 +349,13 @@ public class TypeMirrorVisitor extends AbstractTypeVisitor9<StringBuilder, Strin
 
   @Override
   public StringBuilder visitIntersection(IntersectionType t, StringBuilder p) {
+    kind = t.getKind();
     boolean first = true;
     for (final var b : t.getBounds()) {
       if (first) {
         first = false;
       } else {
-        p.append("&");
+        p.append(" & ");
       }
       child(b, p);
     }
