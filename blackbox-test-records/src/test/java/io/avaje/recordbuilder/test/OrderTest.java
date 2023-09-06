@@ -44,22 +44,25 @@ class OrderTest {
       .status(Order.Status.NEW)
       .build();
 
-    var transformedOrder =
-      Order.from(original)
-        .transform(orderBuilder -> {
-          if (orderBuilder.status() == Order.Status.NEW) {
-            orderBuilder.status(Order.Status.COMPLETE);
-
-            // transform a nested collection
-            List<OrderLine> newLines = orderBuilder.lines().stream()
-              .filter(line -> line.id() < 43)
-              .toList();
-
-            orderBuilder.lines(newLines);
-          }
-        })
-        .build();
+    Order transformedOrder =
+      doSomeTransform(original)
+      .build();
 
     assertThat(transformedOrder.status()).isEqualTo(Order.Status.COMPLETE);
+  }
+
+  private static OrderBuilder doSomeTransform(Order original) {
+    OrderBuilder orderBuilder = Order.from(original);
+    if (orderBuilder.status() == Order.Status.NEW) {
+      orderBuilder.status(Order.Status.COMPLETE);
+
+      // transform a nested collection
+      List<OrderLine> newLines = orderBuilder.lines().stream()
+        .filter(line -> line.id() < 43)
+        .toList();
+
+      orderBuilder.lines(newLines);
+    }
+    return orderBuilder;
   }
 }

@@ -1,13 +1,14 @@
 package io.avaje.recordbuilder.test;
 
 import io.avaje.recordbuilder.RecordBuilder;
+import io.avaje.validation.constraints.NotNull;
 
 import java.util.List;
 
 @RecordBuilder(getters = true)
 public record Order(
   long id,
-  Status status,
+  @NotNull Status status,
   Customer customer,
   List<OrderLine> lines
 ) {

@@ -9,7 +9,6 @@ import static io.avaje.recordbuilder.internal.Templates.methodAdd;
 import static io.avaje.recordbuilder.internal.Templates.methodGetter;
 import static io.avaje.recordbuilder.internal.Templates.methodPut;
 import static io.avaje.recordbuilder.internal.Templates.methodSetter;
-import static io.avaje.recordbuilder.internal.Templates.transformers;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
@@ -114,8 +113,6 @@ public final class RecordProcessor extends AbstractProcessor {
       Boolean writeGetters) {
 
     boolean getters = Boolean.TRUE.equals(writeGetters);
-
-    writer.append(transformers(shortName));
 
     for (final var element : components) {
       final var type = UType.parse(element.asType());
