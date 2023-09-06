@@ -1,212 +1,135 @@
 package io.avaje.recordbuilder.internal;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
 
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
-interface UType {
+/** Utility type to help process {@link TypeMirror}s */
+public interface UType {
 
-  /** Create the UType from the given TypeMirror. */
-  static UType parse(TypeMirror returnType) {
+  /**
+   * Create a UType from the given TypeMirror.
+   *
+   * @param mirror type mirror to analyze
+   * @return Create the UType from the given TypeMirror.
+   */
+  static UType parse(TypeMirror mirror) {
 
-    return parse(returnType.toString());
+    return TypeMirrorVisitor.create(mirror);
   }
 
-  /** Create the UType from the given String. */
-  static UType parse(String rawType) {
-    final var type = ProcessorUtils.trimAnnotations(rawType);
-    final int pos = type.indexOf('<');
-    if (pos == -1) {
-      return new UType.Basic(type);
-    }
-    return new UType.Generic(type);
-  }
-
-  /** Return the import types. */
+  /**
+   * Return all the import types needed to write this mirror in source code (annotations included).
+   *
+   * @return Return the import types required.
+   */
   Set<String> importTypes();
 
-  /** Return the short name. */
-  String shortType();
+  /**
+   * Return the full type as a code safe string. (with annotations if present)
+   *
+   * @return the full typeName
+   */
+  String full();
 
-  /** Return the main type (outer most type). */
+  /**
+   *  Return the main type (outermost type). e.g for mirror {@ java.util.List<Something> you'll get java.util.List
+   *
+   * @return the outermost type
+   */
   String mainType();
 
+  /**
+   * Return the full (but unqualified) type as a code safe string. Use in tandem with {@link
+   * #importTypes()} to generate readable code
+   *
+   * @return the short name with unqualified type
+   */
+  String shortType();
+
   /** Return the first generic parameter. */
-  default String param0() {
+  default UType param0() {
     return null;
   }
 
   /** Return the second generic parameter. */
-  default String param1() {
+  default UType param1() {
     return null;
   }
 
-  /** Return the raw generic parameter if this UType is a Collection. */
-  default UType paramRaw() {
-    return null;
+  /**
+   * Retrieve the component types associated with this mirror.
+   *
+   * <p>The annotated class must conform to the service provider specification. Specifically, it
+   * must:
+   *
+   * <ul>
+   *   <li>{@code TypeKind.ARRAY}: will contain the array componentType
+   *   <li>{@code TypeKind.DECLARED}: will contain the generic parameters
+   *   <li>{@code TypeKind.TYPEVAR}: will contain the upper bound for the type variable
+   *   <li>{@code TypeKind.WILDCARD}: will contain the extends bound or super bound
+   *   <li>{@code TypeKind.INTERSECTION}: will contain the bounds of the intersection
+   * </ul>
+   *
+   * @return the component types
+   */
+  default List<UType> componentTypes() {
+    return List.of();
   }
 
-  /** Return the raw type. */
-  String full();
+  /**
+   * The kind of the type mirror used to create this Utype.
+   *
+   * @return the typekind
+   */
+  TypeKind kind();
 
+  /**
+   * Returns whether the type mirror is generic
+   *
+   * @return whether the type is generic
+   */
   default boolean isGeneric() {
     return false;
   }
 
-  default String genericParams() {
-    return "";
+  /**
+   * Return the annotation mirrors directly on the type.
+   *
+   * @return the annotations directly present
+   */
+  default List<AnnotationMirror> annotations() {
+    return List.of();
   }
 
-  /** Simple non-generic type. */
-  class Basic implements UType {
-    final String rawType;
-
-    Basic(String rawType) {
-      this.rawType = rawType;
-    }
-
-    @Override
-    public String full() {
-      return rawType;
-    }
-
-    @Override
-    public Set<String> importTypes() {
-      return rawType.startsWith("java.lang.") && rawType.indexOf('.') > -1
-          ? Set.of()
-          : Collections.singleton(rawType.replace("[]", ""));
-    }
-
-    @Override
-    public String shortType() {
-      return ProcessorUtils.shortType(rawType);
-    }
-
-    @Override
-    public String mainType() {
-      return rawType;
-    }
-
-    @Override
-    public String toString() {
-      return rawType;
-    }
+  /**
+   * Return the annotation mirrors directly on the type and in within generic type use. e.g. for
+   * {@code @NotEmpty Map<@Notblank String, Object>} you will get all the annotations not just
+   *
+   * @return all annotations present on this type
+   */
+  default List<AnnotationMirror> allAnnotationsInType() {
+    return List.of();
   }
 
-  /** Generic type. */
-  class Generic implements UType {
-    final String rawType;
-    final List<String> allTypes;
-    final String shortRawType;
+  /**
+   * Return the full type as a string, stripped of annotations.
+   *
+   * @return full type, but without annotations
+   */
+  default String fullWithoutAnnotations() {
+    return ProcessorUtils.trimAnnotations(full()).replace(",", ", ");
+  }
 
-    Generic(String rawTypeInput) {
-      this.rawType = rawTypeInput.replace(" ", ""); // trim whitespace
-      this.allTypes = Arrays.asList(rawType.split("[<|>|,]"));
-      this.shortRawType = shortRawType(rawType, allTypes);
-    }
-
-    private String shortRawType(String rawType, List<String> allTypes) {
-      final Map<String, String> typeMap = new LinkedHashMap<>();
-      for (final String val : allTypes) {
-        typeMap.put(val, ProcessorUtils.shortType(val));
-      }
-      String shortRaw = rawType;
-      for (final Map.Entry<String, String> entry : typeMap.entrySet()) {
-        shortRaw = shortRaw.replace(entry.getKey(), entry.getValue());
-      }
-      return shortRaw;
-    }
-
-    @Override
-    public String full() {
-      return rawType;
-    }
-
-    @Override
-    public String toString() {
-      return rawType;
-    }
-
-    @Override
-    public Set<String> importTypes() {
-      final Set<String> set = new LinkedHashSet<>();
-      for (final String type : allTypes) {
-        if (!type.startsWith("java.lang.") && type.indexOf('.') > -1) {
-          if (type.startsWith("java")) {
-            set.add(type.replace("[]", "").replace("?extends", ""));
-          } else {
-            set.add(innerTypesImport(type).replace("[]", "").replace("?extends", ""));
-          }
-        }
-      }
-      set.remove("?");
-      return set;
-    }
-
-    public String innerTypesImport(String type) {
-      final var parts = type.split("\\.");
-      var result = "";
-      var foundUpper = false;
-
-      for (var i = 0; i < parts.length; i++) {
-        if (!Character.isUpperCase(parts[i].charAt(0))) {
-          result += parts[i] + ".";
-        } else if (!foundUpper) {
-          foundUpper = true;
-          result += parts[i] + (i == parts.length - 1 ? "" : ".");
-        } else {
-          break;
-        }
-      }
-
-      if (result.endsWith(".")) {
-        result = result.substring(0, result.length() - 1);
-      }
-      return result;
-    }
-
-    @Override
-    public boolean isGeneric() {
-      return true;
-    }
-
-    @Override
-    public String genericParams() {
-      final StringJoiner joiner = new StringJoiner(",");
-      for (final String type : allTypes) {
-        if (type.indexOf('.') == -1) {
-          joiner.add(type);
-        }
-      }
-      final String commaDelim = joiner.toString();
-      return commaDelim.isEmpty() ? "" : "<" + commaDelim + "> ";
-    }
-
-    @Override
-    public String shortType() {
-      return shortRawType;
-    }
-
-    @Override
-    public String mainType() {
-      return allTypes.isEmpty() ? null : allTypes.get(0);
-    }
-
-    @Override
-    public String param0() {
-      return allTypes.size() < 2 ? null : allTypes.get(1);
-    }
-
-    @Override
-    public String param1() {
-      return allTypes.size() < 3 ? null : allTypes.get(2);
-    }
+  /**
+   * Return the short type as a string, stripped of annotations.
+   *
+   * @return short type, but without annotations
+   */
+  default String shortWithoutAnnotations() {
+    return ProcessorUtils.trimAnnotations(shortType()).replace(",", ", ");
   }
 }

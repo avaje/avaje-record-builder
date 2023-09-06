@@ -1,22 +1,20 @@
 package io.avaje.recordbuilder.internal;
 
-import static io.avaje.recordbuilder.internal.Templates.*;
-import static io.avaje.recordbuilder.internal.APContext.asTypeElement;
 import static io.avaje.recordbuilder.internal.APContext.createSourceFile;
 import static io.avaje.recordbuilder.internal.APContext.elements;
 import static io.avaje.recordbuilder.internal.APContext.getModuleInfoReader;
 import static io.avaje.recordbuilder.internal.APContext.logError;
 import static io.avaje.recordbuilder.internal.APContext.typeElement;
-import static java.util.stream.Collectors.joining;
+import static io.avaje.recordbuilder.internal.Templates.methodAdd;
+import static io.avaje.recordbuilder.internal.Templates.methodGetter;
+import static io.avaje.recordbuilder.internal.Templates.methodPut;
+import static io.avaje.recordbuilder.internal.Templates.methodSetter;
+import static io.avaje.recordbuilder.internal.Templates.transformers;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -123,27 +121,30 @@ public final class RecordProcessor extends AbstractProcessor {
       final var type = UType.parse(element.asType());
       writer.append(methodSetter(element.getSimpleName(), type.shortType(), shortName));
       if (getters) {
-        writer.append(methodGetter(element.getSimpleName(), type.shortType(), shortName));
+        writer.append(
+            methodGetter(
+                element.getSimpleName(),
+                type.shortType().transform(ProcessorUtils::trimAnnotations),
+                shortName));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {
-        String param0 = type.param0();
-        String param0ShortType = UType.parse(param0).shortType();
+
+        String param0ShortType = type.param0().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
             methodAdd(simpleName.toString(), type.shortType(), shortName, param0ShortType));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Map")) {
-        String param0 = type.param0();
-        String param0ShortType = UType.parse(param0).shortType();
-        String param1 = type.param1();
-        String param1ShortType = UType.parse(param1).shortType();
+
+        String param0ShortType = type.param0().shortType();
+        String param1ShortType = type.param1().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
             methodPut(
                 simpleName.toString(),
-                type.shortType(),
+                type.shortType().transform(ProcessorUtils::trimAnnotations),
                 shortName,
                 param0ShortType,
                 param1ShortType));

@@ -3,19 +3,16 @@ package io.avaje.recordbuilder.internal;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
 
-import java.lang.invoke.VarHandle;
-import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.PrimitiveType;
-import javax.lang.model.type.TypeMirror;
 
 final class RecordModel {
 
@@ -39,20 +36,13 @@ final class RecordModel {
   }
 
   void initialImports() {
-    final Set<String> types =
-        components.stream()
-            .map(RecordComponentElement::asType)
-            .filter(not(PrimitiveType.class::isInstance))
-            .map(TypeMirror::toString)
-            .map(ProcessorUtils::trimAnnotations)
-            .flatMap(s -> Arrays.stream(s.split("[<|>|,]")))
-            .map(Utils::extractTypeWithNest)
-            .distinct()
-            .filter(not(String::isBlank))
-            .filter(s -> !s.startsWith("java.lang"))
-            .collect(Collectors.toSet());
 
-    importTypes.addAll(types);
+    components.stream()
+        .map(RecordComponentElement::asType)
+        .filter(not(PrimitiveType.class::isInstance))
+        .map(TypeMirrorVisitor::create)
+        .map(UType::importTypes)
+        .forEach(importTypes::addAll);
   }
 
   String fields() {
@@ -87,7 +77,14 @@ final class RecordModel {
       }
 
       builder.append(
-          "  private %s %s%s;\n".formatted(uType.shortType(), element.getSimpleName(), defaultVal));
+          "  private %s %s%s;\n"
+              .formatted(
+                  uType
+                      .shortType()
+                      .transform(ProcessorUtils::trimAnnotations)
+                      .transform(this::shortRawType),
+                  element.getSimpleName(),
+                  defaultVal));
     }
 
     return builder.toString();
@@ -100,5 +97,17 @@ final class RecordModel {
         .transform(s -> s + (isImported ? "\nimport " + type.getQualifiedName() + ";" : ""))
         .lines()
         .collect(joining("\n"));
+  }
+
+  private String shortRawType(String rawType) {
+    final Map<String, String> typeMap = new LinkedHashMap<>();
+    for (final String val : importTypes) {
+      typeMap.put(val, ProcessorUtils.shortType(val));
+    }
+    String shortRaw = rawType;
+    for (final Map.Entry<String, String> entry : typeMap.entrySet()) {
+      shortRaw = shortRaw.replace(entry.getKey(), entry.getValue());
+    }
+    return shortRaw;
   }
 }
