@@ -16,27 +16,32 @@ import javax.lang.model.type.PrimitiveType;
 
 final class RecordModel {
 
+  // Create a Pattern object
+  private static final Pattern JAVA_UTIL = Pattern.compile("new\\s+(java\\.util\\.[A-Za-z]+)");
+  private static final Pattern OPTIONAL = Pattern.compile("(java\\.util\\.[A-Za-z]+)");
+
   private final TypeElement type;
   private final boolean isImported;
   private final List<? extends RecordComponentElement> components;
 
   private final Set<String> importTypes = new TreeSet<>();
 
-  // Create a Pattern object
-  Pattern JAVA_UTIL = Pattern.compile("new\\s+(java\\.util\\.[A-Za-z]+)");
-  Pattern OPTIONAL = Pattern.compile("(java\\.util\\.[A-Za-z]+)");
-
   RecordModel(
-      TypeElement type, boolean isImported, List<? extends RecordComponentElement> components) {
+      TypeElement type,
+      boolean isImported,
+      List<? extends RecordComponentElement> components,
+      UType utype) {
     this.type = type;
     this.isImported = isImported;
     this.components = components;
     importTypes.add("io.avaje.recordbuilder.Generated");
     importTypes.add("java.util.function.Consumer");
+    var imports = utype.importTypes();
+    imports.remove(type.getQualifiedName().toString());
+    importTypes.addAll(imports);
   }
 
   void initialImports() {
-
     components.stream()
         .map(RecordComponentElement::asType)
         .filter(not(PrimitiveType.class::isInstance))

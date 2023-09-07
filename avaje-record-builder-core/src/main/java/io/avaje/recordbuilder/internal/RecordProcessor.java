@@ -9,6 +9,7 @@ import static io.avaje.recordbuilder.internal.Templates.methodAdd;
 import static io.avaje.recordbuilder.internal.Templates.methodGetter;
 import static io.avaje.recordbuilder.internal.Templates.methodPut;
 import static io.avaje.recordbuilder.internal.Templates.methodSetter;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
@@ -62,6 +63,7 @@ public final class RecordProcessor extends AbstractProcessor {
         logError(type, "Builders can only be generated for record classes");
         continue;
       }
+      UType.parse(type.asType()).shortWithoutAnnotations();
       readElement(type);
     }
 
@@ -98,9 +100,14 @@ public final class RecordProcessor extends AbstractProcessor {
     try (var writer =
         new Append(createSourceFile(packageName + "." + shortName + "Builder").openWriter())) {
 
-      writer.append(ClassBodyBuilder.createClassStart(type, isImported));
+      var typeParams =
+          type.getTypeParameters().stream()
+              .map(Object::toString)
+              .collect(joining(", "))
+              .transform(s -> s.isEmpty() ? s : "<" + s + ">");
+      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported));
       final var writeGetters = RecordBuilderPrism.getInstanceOn(type).getters();
-      methods(writer, shortName, components, writeGetters);
+      methods(writer, typeParams, shortName, components, writeGetters);
     } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -108,6 +115,7 @@ public final class RecordProcessor extends AbstractProcessor {
 
   private void methods(
       Append writer,
+      String typeParams,
       String shortName,
       List<? extends RecordComponentElement> components,
       Boolean writeGetters) {
@@ -116,7 +124,7 @@ public final class RecordProcessor extends AbstractProcessor {
 
     for (final var element : components) {
       final var type = UType.parse(element.asType());
-      writer.append(methodSetter(element.getSimpleName(), type.shortType(), shortName));
+      writer.append(methodSetter(element.getSimpleName(), type.shortType(), shortName, typeParams));
       if (getters) {
         writer.append(
             methodGetter(
@@ -130,7 +138,8 @@ public final class RecordProcessor extends AbstractProcessor {
         String param0ShortType = type.param0().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
-            methodAdd(simpleName.toString(), type.shortType(), shortName, param0ShortType));
+            methodAdd(
+                simpleName.toString(), type.shortType(), shortName, param0ShortType, typeParams));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Map")) {
@@ -144,7 +153,8 @@ public final class RecordProcessor extends AbstractProcessor {
                 type.shortType().transform(ProcessorUtils::trimAnnotations),
                 shortName,
                 param0ShortType,
-                param1ShortType));
+                param1ShortType,
+                typeParams));
       }
     }
     writer.append("}");
