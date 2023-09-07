@@ -55,7 +55,6 @@ public class Templates {
 		     public {2}{10} build() '{'
 		         return new {2}{10}({7});
 		     '}'
-
 		   """,
         packageName,
         imports,
@@ -74,6 +73,7 @@ public class Templates {
       CharSequence componentName, String type, String shortName, String typeParams) {
     return MessageFormat.format(
         """
+
 		     /** Set a new value for '{'@code {0}'}'. */
 		     public {2}Builder{3} {0}({1} {0}) '{'
 		         this.{0} = {0};
@@ -86,6 +86,7 @@ public class Templates {
   static String methodGetter(CharSequence componentName, String type, String shortName) {
     return MessageFormat.format(
         """
+
 		     /** Return the current value for '{'@code {0}'}'. */
 		     public {1} {0}() '{'
 		         return {0};
