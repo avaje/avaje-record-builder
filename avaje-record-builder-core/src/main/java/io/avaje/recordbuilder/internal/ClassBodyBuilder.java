@@ -6,14 +6,17 @@ import static java.util.stream.Collectors.joining;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 
 // TODO better name?
 public class ClassBodyBuilder {
 
-  static String createClassStart(TypeElement type, boolean isImported) {
+  static String createClassStart(TypeElement type, String typeParams, boolean isImported) {
 
     final var components = type.getRecordComponents();
     final var packageName =
@@ -23,13 +26,26 @@ public class ClassBodyBuilder {
     if (type.getEnclosingElement() instanceof TypeElement) {
       isImported = true;
     }
-    final RecordModel rm = new RecordModel(type, isImported, components);
+    var utype = UType.parse(type.asType());
+    var fulltypeParams =
+        utype.componentTypes().stream()
+            .map(
+                t ->
+                    t.shortType()
+                        + Optional.ofNullable(t.param0())
+                            .map(UType::shortType)
+                            .map(s -> " extends " + s)
+                            .orElse(""))
+            .collect(joining(", "))
+            .transform(s -> s.replace(" extends java.lang.Object", ""))
+            .transform(s -> s.isEmpty() ? s : "<" + s + ">");
+
+    final RecordModel rm = new RecordModel(type, isImported, components, utype);
     rm.initialImports();
     final String fieldString = rm.fields();
     final var imports = rm.importsFormat();
     final var numberOfComponents = components.size();
 
-    // String fieldString = fields(components);
     final String constructorParams = constructorParams(components, numberOfComponents > 5);
     final String constructorBody = constructorBody(components);
     final String builderFrom =
@@ -44,7 +60,9 @@ public class ClassBodyBuilder {
         constructorParams,
         constructorBody,
         builderFrom,
-        build);
+        build,
+        fulltypeParams,
+        typeParams);
   }
 
   private static String constructorParams(
