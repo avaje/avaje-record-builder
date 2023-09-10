@@ -31,7 +31,11 @@ module my.module {
 ### 2. Add `@RecordBuilder`
 ```java
 @RecordBuilder
-public record ArmoredCore(@DefaultValue("\"Steel Haze\"") String coreName, String model, int energyReserve, int ap) {) {}
+public record ArmoredCore(
+    @DefaultValue("\"Steel Haze\"") String coreName,
+    String model,
+    int energyReserve, 
+    int ap) {}
 ```
 
 The following builder class will be generated for the above:
