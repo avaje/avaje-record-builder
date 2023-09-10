@@ -56,7 +56,7 @@ final class RecordModel {
       final var uType = UType.parse(element.asType());
 
       String defaultVal = "";
-      final DefaultInitPrism initPrism = DefaultInitPrism.getInstanceOn(element);
+      final DefaultValuePrism initPrism = DefaultValuePrism.getInstanceOn(element);
       if (initPrism != null) {
         defaultVal = " = " + initPrism.value();
       } else {

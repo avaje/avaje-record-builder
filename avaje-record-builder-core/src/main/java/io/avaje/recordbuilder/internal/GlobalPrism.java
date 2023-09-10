@@ -13,7 +13,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
-/** A Prism representing a {@link io.avaje.recordbuilder.DefaultInit.Global @Global} annotation. */
+/** A Prism representing a {@link io.avaje.recordbuilder.DefaultValue.Global @Global} annotation. */
 @Generated("avaje-prism-generator")
 final class GlobalPrism {
   /** store prism value of type */
@@ -22,7 +22,7 @@ final class GlobalPrism {
   /** store prism value of value */
   private final String _value;
 
-  public static final String PRISM_TYPE = "io.avaje.recordbuilder.DefaultInit.Global";
+  public static final String PRISM_TYPE = "io.avaje.recordbuilder.DefaultValue.Global";
 
   /**
    * An instance of the Values inner class whose methods return the AnnotationValues used to build
@@ -32,7 +32,7 @@ final class GlobalPrism {
 
   /**
    * Returns true if the mirror is an instance of {@link
-   * io.avaje.recordbuilder.DefaultInit.Global @Global} is present on the element, else false.
+   * io.avaje.recordbuilder.DefaultValue.Global @Global} is present on the element, else false.
    *
    * @param mirror mirror.
    * @return true if prism is present.
@@ -42,7 +42,7 @@ final class GlobalPrism {
   }
 
   /**
-   * Returns true if {@link io.avaje.recordbuilder.DefaultInit.Global @Global} is present on the
+   * Returns true if {@link io.avaje.recordbuilder.DefaultValue.Global @Global} is present on the
    * element, else false.
    *
    * @param element element.
@@ -53,10 +53,10 @@ final class GlobalPrism {
   }
 
   /**
-   * Return a prism representing the {@link io.avaje.recordbuilder.DefaultInit.Global @Global}
+   * Return a prism representing the {@link io.avaje.recordbuilder.DefaultValue.Global @Global}
    * annotation present on the given element. similar to {@code element.getAnnotation(Global.class)}
    * except that an instance of this class rather than an instance of {@link
-   * io.avaje.recordbuilder.DefaultInit.Global @Global} is returned.
+   * io.avaje.recordbuilder.DefaultValue.Global @Global} is returned.
    *
    * @param element element.
    * @return prism on element or null if no annotation is found.
@@ -69,10 +69,10 @@ final class GlobalPrism {
 
   /**
    * Return a Optional representing a nullable {@link
-   * io.avaje.recordbuilder.DefaultInit.Global @Global} annotation on the given element. similar to
-   * {@link element.getAnnotation(io.avaje.recordbuilder.DefaultInit.Global.class)} except that an
+   * io.avaje.recordbuilder.DefaultValue.Global @Global} annotation on the given element. similar to
+   * {@link element.getAnnotation(io.avaje.recordbuilder.DefaultValue.Global.class)} except that an
    * Optional of this class rather than an instance of {@link
-   * io.avaje.recordbuilder.DefaultInit.Global} is returned.
+   * io.avaje.recordbuilder.DefaultValue.Global} is returned.
    *
    * @param element element.
    * @return prism optional for element.
@@ -84,7 +84,7 @@ final class GlobalPrism {
   }
 
   /**
-   * Return a prism of the {@link io.avaje.recordbuilder.DefaultInit.Global @Global} annotation from
+   * Return a prism of the {@link io.avaje.recordbuilder.DefaultValue.Global @Global} annotation from
    * an annotation mirror.
    *
    * @param mirror mirror.
@@ -98,9 +98,9 @@ final class GlobalPrism {
 
   /**
    * Return an Optional representing a nullable {@link GlobalPrism @GlobalPrism} from an annotation
-   * mirror. similar to {@link e.getAnnotation(io.avaje.recordbuilder.DefaultInit.Global.class)}
+   * mirror. similar to {@link e.getAnnotation(io.avaje.recordbuilder.DefaultValue.Global.class)}
    * except that an Optional of this class rather than an instance of {@link
-   * io.avaje.recordbuilder.DefaultInit.Global @Global} is returned.
+   * io.avaje.recordbuilder.DefaultValue.Global @Global} is returned.
    *
    * @param mirror mirror.
    * @return prism optional for mirror.
@@ -131,7 +131,7 @@ final class GlobalPrism {
    * Returns a TypeMirror representing the value of the {@code java.lang.Class<?> type()} member of
    * the Annotation.
    *
-   * @see io.avaje.recordbuilder.DefaultInit.Global#type()
+   * @see io.avaje.recordbuilder.DefaultValue.Global#type()
    */
   public TypeMirror type() {
     return _type;
@@ -141,7 +141,7 @@ final class GlobalPrism {
    * Returns a String representing the value of the {@code java.lang.String value()} member of the
    * Annotation.
    *
-   * @see io.avaje.recordbuilder.DefaultInit.Global#value()
+   * @see io.avaje.recordbuilder.DefaultValue.Global#value()
    */
   public String value() {
     return _value;
@@ -162,7 +162,7 @@ final class GlobalPrism {
   final AnnotationMirror mirror;
   /**
    * A class whose members corespond to those of {@link
-   * io.avaje.recordbuilder.DefaultInit.Global @Global} but which each return the AnnotationValue
+   * io.avaje.recordbuilder.DefaultValue.Global @Global} but which each return the AnnotationValue
    * corresponding to that member in the model of the annotations. Returns null for defaulted
    * members. Used for Messager, so default values are not useful.
    */
