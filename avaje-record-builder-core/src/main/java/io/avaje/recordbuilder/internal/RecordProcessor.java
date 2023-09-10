@@ -63,7 +63,7 @@ public final class RecordProcessor extends AbstractProcessor {
         logError(type, "Builders can only be generated for record classes");
         continue;
       }
-      UType.parse(type.asType()).shortWithoutAnnotations();
+
       readElement(type);
     }
 
