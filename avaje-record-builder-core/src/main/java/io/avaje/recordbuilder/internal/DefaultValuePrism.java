@@ -14,7 +14,7 @@ import javax.lang.model.util.ElementFilter;
 
 /** A Prism representing a {@link io.avaje.recordbuilder.DefaultValue @DefaultValue} annotation. */
 @Generated("avaje-prism-generator")
-public final class DefaultValuePrism {
+final class DefaultValuePrism {
   /** store prism value of value */
   private final String _value;
 
