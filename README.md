@@ -25,7 +25,7 @@ Uses Annotation processing to generate builders for records.
 When working with Java modules you need to add the annotation module as a static dependency.
 ```java
 module my.module {
-  requires static io.avaje.record;
+  requires static io.avaje.recordbuilder;
 }
 ```
 ### 2. Add `@RecordBuilder`
