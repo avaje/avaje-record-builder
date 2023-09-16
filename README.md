@@ -6,8 +6,8 @@
 Uses Annotation processing to generate builders for records.
 
 ## Distinguishing features
-- By default Collection/Optional Types will not be null (an empty collection/optional will be provided)
-- can choose the default value of a record component in the generated builder
+- By default, Collection/Optional Types will not be null (an empty collection/optional will be provided)
+- We can choose the default value of a record component in the generated builder
 - Copies nullability annotations to the generated setters to aid in static analysis
 
 ## Usage
