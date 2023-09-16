@@ -1,4 +1,4 @@
-module io.avaje.record.core {
+module io.avaje.recordbuilder.core {
 
   requires java.compiler;
   requires static io.avaje.prism;
