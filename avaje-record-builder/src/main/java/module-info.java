@@ -1,4 +1,4 @@
-module io.avaje.record {
+module io.avaje.recordbuilder {
 
   exports io.avaje.recordbuilder;
 }
