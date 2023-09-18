@@ -95,7 +95,7 @@ public class ArmoredCoreBuilder {
    * Set a new value for the {@code energyReserve} record component in the builder
    */
   public ArmoredCoreBuilder energyReserve(int energyReserve) {
-      this.energyReserv = energyReserv;
+      this.energyReserve = energyReserve;
       return this;
   }
   /**
