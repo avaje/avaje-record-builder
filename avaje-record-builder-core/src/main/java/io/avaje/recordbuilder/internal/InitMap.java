@@ -1,6 +1,5 @@
 package io.avaje.recordbuilder.internal;
 
-import java.io.ObjectOutputStream.PutField;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,8 +40,13 @@ public class InitMap {
     put(util + "NavigableMap", initDiamond.formatted("TreeMap"));
 
     // queue
+    put(util + "Queue", initDiamond.formatted("LinkedList"));
 
     // deque
+
+    put(util + "Deque", initDiamond.formatted("ArrayDeque"));
+    put(util + "ArrayDeque", initDiamond.formatted("ArrayDeque"));
+
   }
 
   static void put(String key, String value) {
