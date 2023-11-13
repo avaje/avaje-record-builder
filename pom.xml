@@ -17,16 +17,15 @@
 
 	<properties>
 	  <nexus.staging.autoReleaseAfterClose>true</nexus.staging.autoReleaseAfterClose>
-	  <surefire.useModulePath>false</surefire.useModulePath>    
-	  <java.version>17</java.version>
-      <java.release>17</java.release>
-	</properties>
-  
+	  <surefire.useModulePath>false</surefire.useModulePath>
+    <maven.compiler.release>17</maven.compiler.release>
+  </properties>
+
 	<modules>
 		<module>avaje-record-builder-core</module>
 		<module>avaje-record-builder</module>
 	</modules>
-  
+
 	<profiles>
 	  <profile>
 		<id>central</id>
@@ -41,5 +40,5 @@
 		</modules>
 	  </profile>
 	</profiles>
-  
+
 </project>
