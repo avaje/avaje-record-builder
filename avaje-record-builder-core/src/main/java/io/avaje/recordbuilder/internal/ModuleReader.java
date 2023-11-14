@@ -1,5 +1,6 @@
 package io.avaje.recordbuilder.internal;
 
+import static io.avaje.recordbuilder.internal.APContext.logError;
 import static io.avaje.recordbuilder.internal.APContext.logWarn;
 
 import java.io.BufferedReader;
@@ -21,7 +22,7 @@ final class ModuleReader {
               }
 
               if (line.contains("io.avaje.recordbuilder") && !line.contains("static")) {
-                logWarn(
+                logError(
                     "`requires io.avaje.recordbuilder` should be `requires static io.avaje.recordbuilder`",
                     module);
               }
