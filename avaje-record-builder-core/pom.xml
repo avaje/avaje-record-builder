@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>io.avaje</groupId>
 		<artifactId>avaje-record-parent</artifactId>
-		<version>1.0-RC2</version>
+		<version>1.0</version>
 	</parent>
 	<artifactId>avaje-record-builder-core</artifactId>
 	<name>avaje-record-builder-core</name>
