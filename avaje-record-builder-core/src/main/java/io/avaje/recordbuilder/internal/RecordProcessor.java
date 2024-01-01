@@ -60,7 +60,7 @@ public final class RecordProcessor extends AbstractProcessor {
         ElementFilter.typesIn(
             roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
       if (type.getRecordComponents().isEmpty()) {
-        logError(type, "Builders can only be generated for record classes");
+        logError(type, "Builders can only be generated for record classes with at least one component");
         continue;
       }
 
