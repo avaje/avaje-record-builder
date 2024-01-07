@@ -22,6 +22,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
@@ -59,7 +60,7 @@ public final class RecordProcessor extends AbstractProcessor {
     for (final TypeElement type :
         ElementFilter.typesIn(
             roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
-      if (type.getRecordComponents().isEmpty()) {
+      if (type.getKind() != ElementKind.RECORD) {
         logError(type, "Builders can only be generated for record classes");
         continue;
       }

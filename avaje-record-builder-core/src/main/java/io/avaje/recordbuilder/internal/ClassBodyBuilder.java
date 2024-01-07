@@ -7,14 +7,13 @@ import static java.util.stream.Collectors.joining;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeKind;
 
-// TODO better name?
 public class ClassBodyBuilder {
+
+  private ClassBodyBuilder() {}
 
   static String createClassStart(TypeElement type, String typeParams, boolean isImported) {
 
