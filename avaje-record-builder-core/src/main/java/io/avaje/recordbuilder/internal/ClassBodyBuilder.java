@@ -1,6 +1,5 @@
 package io.avaje.recordbuilder.internal;
 
-import static io.avaje.recordbuilder.internal.APContext.elements;
 import static io.avaje.recordbuilder.internal.Templates.classTemplate;
 import static java.util.stream.Collectors.joining;
 
@@ -15,12 +14,11 @@ public class ClassBodyBuilder {
 
   private ClassBodyBuilder() {}
 
-  static String createClassStart(TypeElement type, String typeParams, boolean isImported) {
+  static String createClassStart(
+      TypeElement type, String typeParams, boolean isImported, String packageName) {
 
     final var components = type.getRecordComponents();
-    final var packageName =
-        elements().getPackageOf(type).getQualifiedName().toString()
-            + (isImported ? ".builder" : "");
+
     final var shortName = type.getSimpleName().toString();
     if (type.getEnclosingElement() instanceof TypeElement) {
       isImported = true;

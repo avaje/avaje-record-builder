@@ -19,7 +19,7 @@ public class Templates {
 
     return MessageFormat.format(
         """
-		   package {0};
+		   {0}
 
 		   {1}
 
@@ -55,7 +55,7 @@ public class Templates {
 		         return new {2}{10}({7});
 		     '}'
 		   """,
-        packageName,
+        packageName.isBlank() ? "" : "package " + packageName + ";",
         imports,
         shortName,
         fields,

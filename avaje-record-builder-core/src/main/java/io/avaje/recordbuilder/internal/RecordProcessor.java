@@ -93,20 +93,25 @@ public final class RecordProcessor extends AbstractProcessor {
   private void readElement(TypeElement type, boolean isImported) {
 
     final var components = type.getRecordComponents();
+    final var packageElement = elements().getPackageOf(type);
+    var unnamed = Utils.isInUnnamedPackage(isImported, packageElement);
     final var packageName =
-        elements().getPackageOf(type).getQualifiedName().toString()
-            + (isImported ? ".builder" : "");
+        unnamed
+            ? ""
+            : packageElement.getQualifiedName().toString() + (isImported ? ".builder" : "");
     final var shortName = type.getSimpleName().toString();
 
     try (var writer =
-        new Append(createSourceFile(packageName + "." + shortName + "Builder").openWriter())) {
+        new Append(
+            createSourceFile((unnamed ? "" : packageName + ".") + shortName + "Builder")
+                .openWriter())) {
 
       var typeParams =
           type.getTypeParameters().stream()
               .map(Object::toString)
               .collect(joining(", "))
               .transform(s -> s.isEmpty() ? s : "<" + s + ">");
-      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported));
+      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported, packageName));
       final var writeGetters = RecordBuilderPrism.getInstanceOn(type).getters();
       methods(writer, typeParams, shortName, components, writeGetters);
     } catch (final IOException e) {
