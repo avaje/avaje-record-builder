@@ -22,6 +22,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
@@ -32,7 +33,11 @@ import io.avaje.prism.GenerateUtils;
 
 @GenerateUtils
 @GenerateAPContext
-@SupportedAnnotationTypes({RecordBuilderPrism.PRISM_TYPE, ImportPrism.PRISM_TYPE})
+@SupportedAnnotationTypes({
+  RecordBuilderPrism.PRISM_TYPE,
+  ImportPrism.PRISM_TYPE,
+  GlobalConfigPrism.PRISM_TYPE
+})
 public final class RecordProcessor extends AbstractProcessor {
 
   @Override
@@ -44,10 +49,16 @@ public final class RecordProcessor extends AbstractProcessor {
   public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
     APContext.init(env);
+    GlobalSettings.init();
   }
 
   @Override
   public boolean process(Set<? extends TypeElement> tes, RoundEnvironment roundEnv) {
+
+    roundEnv.getElementsAnnotatedWith(typeElement(GlobalConfigPrism.PRISM_TYPE)).stream()
+        .map(GlobalConfigPrism::getInstanceOn)
+        .findFirst()
+        .ifPresent(GlobalSettings::configure);
 
     final var globalTypeInitializers =
         roundEnv.getElementsAnnotatedWith(typeElement(GlobalPrism.PRISM_TYPE)).stream()
@@ -59,7 +70,7 @@ public final class RecordProcessor extends AbstractProcessor {
     for (final TypeElement type :
         ElementFilter.typesIn(
             roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
-      if (type.getRecordComponents().isEmpty()) {
+      if (type.getKind() != ElementKind.RECORD) {
         logError(type, "Builders can only be generated for record classes");
         continue;
       }
@@ -69,10 +80,11 @@ public final class RecordProcessor extends AbstractProcessor {
 
     roundEnv.getElementsAnnotatedWith(typeElement(ImportPrism.PRISM_TYPE)).stream()
         .map(ImportPrism::getInstanceOn)
-        .map(ImportPrism::value)
-        .flatMap(List::stream)
-        .map(APContext::asTypeElement)
-        .forEach(this::readElement);
+        .forEach(
+            prism ->
+                prism.value().stream()
+                    .map(APContext::asTypeElement)
+                    .forEach(t -> readElement(t, prism)));
 
     if (roundEnv.processingOver()) {
       try (var reader = getModuleInfoReader()) {
@@ -81,33 +93,42 @@ public final class RecordProcessor extends AbstractProcessor {
       } catch (IOException e) {
         // Can't read module, it's whatever
       }
+      GlobalSettings.clear();
+      APContext.clear();
     }
     return false;
   }
 
   private void readElement(TypeElement type) {
-    readElement(type, false);
+    readElement(type, RecordBuilderPrism.getInstanceOn(type));
   }
 
-  private void readElement(TypeElement type, boolean isImported) {
+  private void readElement(TypeElement type, BuilderPrism prism) {
 
     final var components = type.getRecordComponents();
+    final var packageElement = elements().getPackageOf(type);
+    boolean isImported = prism.imported();
+    var unnamed = Utils.isInUnnamedPackage(isImported, packageElement);
     final var packageName =
-        elements().getPackageOf(type).getQualifiedName().toString()
-            + (isImported ? ".builder" : "");
+        unnamed
+            ? ""
+            : packageElement.getQualifiedName().toString() + (isImported ? ".builder" : "");
     final var shortName = type.getSimpleName().toString();
 
     try (var writer =
-        new Append(createSourceFile(packageName + "." + shortName + "Builder").openWriter())) {
+        new Append(
+            createSourceFile((unnamed ? "" : packageName + ".") + shortName + "Builder")
+                .openWriter())) {
 
       var typeParams =
           type.getTypeParameters().stream()
               .map(Object::toString)
               .collect(joining(", "))
               .transform(s -> s.isEmpty() ? s : "<" + s + ">");
-      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported));
-      final var writeGetters = RecordBuilderPrism.getInstanceOn(type).getters();
-      methods(writer, typeParams, shortName, components, writeGetters);
+      writer.append(
+          ClassBodyBuilder.createClassStart(prism, type, typeParams, isImported, packageName));
+
+      methods(writer, typeParams, shortName, components, prism);
     } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -118,9 +139,8 @@ public final class RecordProcessor extends AbstractProcessor {
       String typeParams,
       String shortName,
       List<? extends RecordComponentElement> components,
-      Boolean writeGetters) {
-
-    boolean getters = Boolean.TRUE.equals(writeGetters);
+      BuilderPrism prism) {
+    boolean getters = GlobalSettings.getters() || prism.getters();
 
     for (final var element : components) {
       final var type = UType.parse(element.asType());
@@ -129,7 +149,7 @@ public final class RecordProcessor extends AbstractProcessor {
         writer.append(
             methodGetter(
                 element.getSimpleName(),
-                type.shortType().transform(ProcessorUtils::trimAnnotations),
+                type,
                 shortName));
       }
 

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import javax.lang.model.element.RecordComponentElement;
@@ -50,12 +51,23 @@ final class RecordModel {
         .forEach(importTypes::addAll);
   }
 
+  void addImport(String imports) {
+    importTypes.add(imports);
+  }
+
+  void nullableAnnotation(String fallback) {
+    importTypes.stream()
+        .filter(s -> s.endsWith("Nullable"))
+        .findAny()
+        .ifPresentOrElse(x -> {}, () -> importTypes.add(fallback));
+  }
+
   String fields() {
     final var builder = new StringBuilder();
     for (final var element : components) {
       final var uType = UType.parse(element.asType());
 
-      String defaultVal = "";
+      String defaultVal = " = null";
       final DefaultValuePrism initPrism = DefaultValuePrism.getInstanceOn(element);
       if (initPrism != null) {
         defaultVal = " = " + initPrism.value();
@@ -80,14 +92,23 @@ final class RecordModel {
           }
         }
       }
+      var typename =
+          uType
+              .shortType()
+              .transform(ProcessorUtils::trimAnnotations)
+              .transform(this::shortRawType);
+      var mainType = ProcessorUtils.shortType(uType.mainType());
+      var index = mainType.lastIndexOf(".");
+      var isNested = index != -1;
+      if (isNested) {
+        typename = new StringBuilder(typename).insert(index + 1, "@Nullable ").toString();
+      }
 
       builder.append(
-          "  private %s %s%s;\n"
+          "  private %s%s %s%s;\n"
               .formatted(
-                  uType
-                      .shortType()
-                      .transform(ProcessorUtils::trimAnnotations)
-                      .transform(this::shortRawType),
+                  isNested || Utils.isNullableType(uType.mainType()) ? "" : "@Nullable ",
+                  typename,
                   element.getSimpleName(),
                   defaultVal));
     }

@@ -8,8 +8,7 @@ Uses Annotation processing to generate builders for records.
 ## Distinguishing features
 - By default, Collection/Optional Types will not be null (an empty collection/optional will be provided)
 - We can choose the default value of a record component in the generated builder
-- Copies nullability annotations to the generated setters to aid in static analysis
-
+- Support for generating Checker/NullAway compliant builders for static null analysis.
 ## Usage
 ### 1. Add dependency:
 ```xml
@@ -22,7 +21,7 @@ Uses Annotation processing to generate builders for records.
 </dependency>
 ```
 
-When working with Java modules you need to add the annotation module as a static dependency.
+Add the annotation module as a static dependency when working with Java modules.
 ```java
 module my.module {
   requires static io.avaje.recordbuilder;
@@ -39,7 +38,9 @@ public record ArmoredCore(
 ```
 
 The following builder class will be generated for the above:
-```java
+<details>
+    <summary>Generated Class, (click to expand)</summary>
+<pre content="java">
 /**  Builder class for {@link ArmoredCore} */
 public class ArmoredCoreBuilder {
   private String coreName = "Steel Haze";
@@ -105,5 +106,29 @@ public class ArmoredCoreBuilder {
       this.ap = ap;
       return this;
   }
+}
+  </pre>
+</details>
+
+## Default Values
+Using `@DefaultValue` we can directly write the code to set the default value in the generated builder. This allows us to directly write a value or use static methods to set the default builder state.
+```java
+@RecordBuilder
+public record Defaults(
+    @DefaultValue("List.of(1,2,3)") List<Integer> list,
+    @DefaultValue("24") int num,
+    @DefaultValue("\"string val\"") String str,
+    @DefaultValue("CustomClass.createDefault()") CustomClass custom) {}
+```
+
+This will generate:
+```java
+public class DefaultsBuilder {
+  private List<Integer> list = List.of(1,2,3);
+  private int num = 24;
+  private String str = "string val";
+  private CustomClass custom = CustomClass.createDefault();
+
+...the rest of the builder
 }
 ```

@@ -8,10 +8,7 @@ class AddressTest {
 
   @Test
   void hasGetter() {
-
-    var builder = Address.builder()
-      .line1("1")
-      .line2("2");
+    var builder = Address.builder().line1("1").line2("2").city("city").country("country");
 
     assertThat(builder.line1()).isEqualTo("1");
     assertThat(builder.line2()).isEqualTo("2");
