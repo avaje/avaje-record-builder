@@ -97,8 +97,8 @@ final class RecordModel {
               .shortType()
               .transform(ProcessorUtils::trimAnnotations)
               .transform(this::shortRawType);
-
-      var index = typename.lastIndexOf(".");
+      var mainType = ProcessorUtils.shortType(uType.mainType());
+      var index = mainType.lastIndexOf(".");
       var isNested = index != -1;
       if (isNested) {
         typename = new StringBuilder(typename).insert(index + 1, "@Nullable ").toString();
@@ -107,7 +107,7 @@ final class RecordModel {
       builder.append(
           "  %sprivate %s %s%s;\n"
               .formatted(
-                  isNested || Utils.isNullable(uType.shortType()) ? "" : "@Nullable ",
+                  isNested || Utils.isNullableType(uType.mainType()) ? "" : "@Nullable ",
                   typename,
                   element.getSimpleName(),
                   defaultVal));

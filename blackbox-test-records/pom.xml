@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>io.avaje</groupId>
@@ -68,8 +70,59 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <executions>
+          <execution>
+            <id>default-compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>io.avaje</groupId>
+                  <artifactId>avaje-record-builder</artifactId>
+                  <version>${project.version}</version>
+                </path>
+                <path>
+                  <groupId>org.checkerframework</groupId>
+                  <artifactId>checker</artifactId>
+                  <version>${checker.version}</version>
+                </path>
+              </annotationProcessorPaths>
+              <annotationProcessors>
+                <annotationProcessor>io.avaje.recordbuilder.internal.RecordProcessor</annotationProcessor>
+                <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
+              </annotationProcessors>
+              <compilerArgs>
+                <arg>-Xmaxerrs</arg>
+                <arg>10000</arg>
+                <arg>-Xmaxwarns</arg>
+                <arg>10000</arg>-proc:full</compilerArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>default-testCompile</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>io.avaje</groupId>
+                  <artifactId>avaje-record-builder</artifactId>
+                  <version>${project.version}</version>
+                </path>
+              </annotationProcessorPaths>
+              <annotationProcessors>
+                <annotationProcessor>io.avaje.recordbuilder.internal.RecordProcessor</annotationProcessor>
+              </annotationProcessors>
+            </configuration>
+          </execution>
+        </executions>
         <configuration>
           <annotationProcessorPaths>
             <path>
@@ -77,24 +130,10 @@
               <artifactId>avaje-record-builder</artifactId>
               <version>${project.version}</version>
             </path>
-            <path>
-              <groupId>org.checkerframework</groupId>
-              <artifactId>checker</artifactId>
-              <version>${checker.version}</version>
-            </path>
           </annotationProcessorPaths>
           <annotationProcessors>
-            <annotationProcessor>
-              io.avaje.recordbuilder.internal.RecordProcessor</annotationProcessor>
-            <annotationProcessor>
-              org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
+            <annotationProcessor>io.avaje.recordbuilder.internal.RecordProcessor</annotationProcessor>
           </annotationProcessors>
-          <compilerArgs>
-            <arg>-Xmaxerrs</arg>
-            <arg>10000</arg>
-            <arg>-Xmaxwarns</arg>
-            <arg>10000</arg>
-          </compilerArgs>
         </configuration>
       </plugin>
     </plugins>

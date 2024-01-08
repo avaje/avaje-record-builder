@@ -43,7 +43,7 @@ final class Utils {
     return prism.enforceNullSafety() || GlobalSettings.enforceNullSafety();
   }
 
-  public static boolean isNullable(String type) {
+  public static boolean isNullableType(String type) {
     return InitMap.get(type) != null;
   }
 }

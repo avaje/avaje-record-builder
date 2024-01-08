@@ -149,7 +149,7 @@ public final class RecordProcessor extends AbstractProcessor {
         writer.append(
             methodGetter(
                 element.getSimpleName(),
-                type.shortType().transform(ProcessorUtils::trimAnnotations),
+                type,
                 shortName));
       }
 

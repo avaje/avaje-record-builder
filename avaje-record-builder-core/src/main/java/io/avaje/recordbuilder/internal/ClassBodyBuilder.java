@@ -104,7 +104,7 @@ public class ClassBodyBuilder {
     return components.stream()
         .map(
             element ->
-                !ProcessorUtils.isPrimitive(element.getSimpleName().toString())
+                !Utils.isNullableType(UType.parse(element.asType()).mainType())
                         && Utils.isNonNullable(element, prism)
                     ? "requireNonNull(%s)".formatted(element.getSimpleName())
                     : element.getSimpleName())

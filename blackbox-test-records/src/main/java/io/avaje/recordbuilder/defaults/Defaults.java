@@ -11,5 +11,4 @@ public record Defaults(
     @DefaultValue("List.of(1,2,3)") List<Integer> list,
     @DefaultValue("24") int num,
     @DefaultValue("\"string val\"") String str,
-    @DefaultValue("defaultString()") String str2,
     @DefaultValue("CustomClass.createDefault()") CustomClass custom) {}

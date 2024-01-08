@@ -105,9 +105,11 @@ public class Templates {
         componentName, type, shortName.replace(".", "$"), typeParams);
   }
 
-  static String methodGetter(CharSequence componentName, String type, String shortName) {
-    var typeName = type;
-    var index = typeName.lastIndexOf(".");
+  static String methodGetter(CharSequence componentName, UType utype, String shortName) {
+
+    var typeName = utype.shortWithoutAnnotations();
+    var mainType = ProcessorUtils.shortType(utype.mainType());
+    var index = mainType.lastIndexOf(".");
     var isNested = index != -1;
     if (isNested) {
       typeName = new StringBuilder(typeName).insert(index + 1, "@Nullable ").toString();
@@ -116,12 +118,12 @@ public class Templates {
     return MessageFormat.format(
         """
 
-		     /** Return the current value for '{'@code {0}'}'. */{0}
+		     /** Return the current value for '{'@code {1}'}'. */{0}
 		     public {2} {1}() '{'
 		       return {1};
 		     '}'
 		   """,
-        isNested || Utils.isNullable(type) ? "" : "\n   @Nullable",
+        isNested || Utils.isNullableType(utype.mainType()) ? "" : "\n   @Nullable",
         componentName,
         typeName,
         shortName.replace(".", "$"));
