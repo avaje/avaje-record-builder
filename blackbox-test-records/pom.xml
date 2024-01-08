@@ -91,16 +91,29 @@
                   <artifactId>checker</artifactId>
                   <version>${checker.version}</version>
                 </path>
+                <path>
+                  <groupId>com.google.errorprone</groupId>
+                  <artifactId>error_prone_core</artifactId>
+                  <version>2.24.1</version>
+                </path>
+                <path>
+                  <groupId>com.uber.nullaway</groupId>
+                  <artifactId>nullaway</artifactId>
+                  <version>0.10.19</version>
+                </path>
               </annotationProcessorPaths>
               <annotationProcessors>
                 <annotationProcessor>io.avaje.recordbuilder.internal.RecordProcessor</annotationProcessor>
                 <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
               </annotationProcessors>
               <compilerArgs>
+                <arg>-XDcompilePolicy=simple</arg>
+                <arg>-Xplugin:ErrorProne</arg>
                 <arg>-Xmaxerrs</arg>
                 <arg>10000</arg>
                 <arg>-Xmaxwarns</arg>
-                <arg>10000</arg>-proc:full</compilerArgs>
+                <arg>10000</arg>
+              </compilerArgs>
             </configuration>
           </execution>
           <execution>
