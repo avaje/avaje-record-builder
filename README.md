@@ -108,7 +108,6 @@ public class ArmoredCoreBuilder {
       return this;
   }
 }
-```
   </pre>
 </details>
 
@@ -117,10 +116,10 @@ Using `@DefaultValue` we can directly write the code to set the default value in
 ```java
 @RecordBuilder
 public record Defaults(
-@DefaultValue("List.of(1,2,3)") List<Integer> list,
-@DefaultValue("24") int num,
-@DefaultValue("\"string val\"") String str,
-@DefaultValue("CustomClass.createDefault()") CustomClass custom) {}
+    @DefaultValue("List.of(1,2,3)") List<Integer> list,
+    @DefaultValue("24") int num,
+    @DefaultValue("\"string val\"") String str,
+    @DefaultValue("CustomClass.createDefault()") CustomClass custom) {}
 ```
 
 This will generate:
