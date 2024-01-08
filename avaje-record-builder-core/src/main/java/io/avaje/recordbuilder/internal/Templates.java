@@ -118,12 +118,12 @@ public class Templates {
     return MessageFormat.format(
         """
 
-		     /** Return the current value for '{'@code {1}'}'. */{0}
-		     public {2} {1}() '{'
+		     /** Return the current value for '{'@code {1}'}'. */
+		     public {0}{2} {1}() '{'
 		       return {1};
 		     '}'
 		   """,
-        isNested || Utils.isNullableType(utype.mainType()) ? "" : "\n   @Nullable",
+        isNested || Utils.isNullableType(utype.mainType()) ? "" : "@Nullable ",
         componentName,
         typeName,
         shortName.replace(".", "$"));

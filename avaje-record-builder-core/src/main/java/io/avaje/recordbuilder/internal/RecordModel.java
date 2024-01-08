@@ -105,7 +105,7 @@ final class RecordModel {
       }
 
       builder.append(
-          "  %sprivate %s %s%s;\n"
+          "  private %s%s %s%s;\n"
               .formatted(
                   isNested || Utils.isNullableType(uType.mainType()) ? "" : "@Nullable ",
                   typename,
