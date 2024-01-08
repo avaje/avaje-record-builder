@@ -131,4 +131,5 @@ public class DefaultsBuilder {
   private CustomClass custom = CustomClass.createDefault();
 
 ...the rest of the builder
+}
 ```
