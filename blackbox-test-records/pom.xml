@@ -57,7 +57,6 @@
     </dependency>
   </dependencies>
 
-
   <build>
     <plugins>
       <plugin>
@@ -68,7 +67,36 @@
           <detectJavaApiLink>false</detectJavaApiLink>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>io.avaje</groupId>
+              <artifactId>avaje-record-builder</artifactId>
+              <version>${project.version}</version>
+            </path>
+            <path>
+              <groupId>org.checkerframework</groupId>
+              <artifactId>checker</artifactId>
+              <version>${checker.version}</version>
+            </path>
+          </annotationProcessorPaths>
+          <annotationProcessors>
+            <annotationProcessor>
+              io.avaje.recordbuilder.internal.RecordProcessor</annotationProcessor>
+            <annotationProcessor>
+              org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
+          </annotationProcessors>
+          <compilerArgs>
+            <arg>-Xmaxerrs</arg>
+            <arg>10000</arg>
+            <arg>-Xmaxwarns</arg>
+            <arg>10000</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
-
 </project>
