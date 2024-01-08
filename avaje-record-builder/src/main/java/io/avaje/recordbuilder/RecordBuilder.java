@@ -3,17 +3,14 @@ package io.avaje.recordbuilder;
 import static java.lang.annotation.ElementType.MODULE;
 import static java.lang.annotation.ElementType.PACKAGE;
 import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.CLASS;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import io.avaje.lang.Nullable;
-import io.avaje.prism.GeneratePrism;
 
 /** Generate a builder class for the given record */
 @Documented
