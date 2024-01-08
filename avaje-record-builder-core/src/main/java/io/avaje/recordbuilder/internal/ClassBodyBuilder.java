@@ -104,8 +104,8 @@ public class ClassBodyBuilder {
     return components.stream()
         .map(
             element ->
-                (prism.enforceNullSafety() && !Utils.isNullable(element))
-                        || Utils.isNonNullable(element)
+                Utils.isNonNullable(element,prism)
+
                     ? "requireNonNull(%s)".formatted(element.getSimpleName())
                     : element.getSimpleName())
         .collect(joining(", "));

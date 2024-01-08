@@ -71,11 +71,10 @@ public final class RecordProcessor extends AbstractProcessor {
     roundEnv.getElementsAnnotatedWith(typeElement(ImportPrism.PRISM_TYPE)).stream()
         .map(ImportPrism::getInstanceOn)
         .forEach(
-            prism -> {
-              prism.value().stream()
-                  .map(APContext::asTypeElement)
-                  .forEach(t -> readElement(t, prism));
-            });
+            prism ->
+                prism.value().stream()
+                    .map(APContext::asTypeElement)
+                    .forEach(t -> readElement(t, prism)));
 
     if (roundEnv.processingOver()) {
       try (var reader = getModuleInfoReader()) {

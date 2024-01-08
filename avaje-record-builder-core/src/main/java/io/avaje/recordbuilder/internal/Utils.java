@@ -18,23 +18,21 @@ final class Utils {
                 .allMatch(PackageElement::isUnnamed);
   }
 
-  /** Return true if the element has a NonNullable annotation. */
-  public static boolean isNonNullable(Element p) {
-    for (final AnnotationMirror mirror : p.getAnnotationMirrors()) {
+  /**
+   * Return true if the element is non-nullable.
+   *
+   * @param prism
+   */
+  public static boolean isNonNullable(Element e, BuilderPrism prism) {
+
+    for (final AnnotationMirror mirror : UType.parse(e.asType()).annotations()) {
       if (mirror.getAnnotationType().toString().endsWith("NonNull")) {
         return true;
       }
-    }
-    return false;
-  }
-
-  /** Return true if the element has a Nullable annotation. */
-  public static boolean isNullable(Element p) {
-    for (final AnnotationMirror mirror : p.getAnnotationMirrors()) {
       if (mirror.getAnnotationType().toString().endsWith("Nullable")) {
-        return true;
+        return false;
       }
     }
-    return false;
+    return prism.enforceNullSafety();
   }
 }
