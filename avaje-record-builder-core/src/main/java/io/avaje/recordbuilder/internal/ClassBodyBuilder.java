@@ -43,7 +43,7 @@ public class ClassBodyBuilder {
 
     final RecordModel rm = new RecordModel(type, isImported, components, utype);
     rm.initialImports();
-    rm.nullableAnnotation(prism.nullableAnnotation().toString());
+    rm.nullableAnnotation(GlobalSettings.nullableAnnotation().orElse(prism.nullableAnnotation().toString()));
     var implementsStr =
         prism.builderInterfaces().stream()
             .map(TypeMirror::toString)
@@ -104,8 +104,8 @@ public class ClassBodyBuilder {
     return components.stream()
         .map(
             element ->
-                Utils.isNonNullable(element,prism)
-
+                !ProcessorUtils.isPrimitive(element.getSimpleName().toString())
+                        && Utils.isNonNullable(element, prism)
                     ? "requireNonNull(%s)".formatted(element.getSimpleName())
                     : element.getSimpleName())
         .collect(joining(", "));

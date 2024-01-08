@@ -17,7 +17,7 @@ final class ModuleReader {
         .lines()
         .forEach(
             line -> {
-              if (line.isBlank()) {
+              if (line.isBlank()|| line.contains("import")) {
                 return;
               }
 

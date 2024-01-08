@@ -1,5 +1,12 @@
 package io.avaje.recordbuilder.internal;
 
+import static java.util.Map.entry;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.Set;
+
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
@@ -33,6 +40,10 @@ final class Utils {
         return false;
       }
     }
-    return prism.enforceNullSafety();
+    return prism.enforceNullSafety() || GlobalSettings.enforceNullSafety();
+  }
+
+  public static boolean isNullable(String type) {
+    return InitMap.get(type) != null;
   }
 }

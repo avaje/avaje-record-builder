@@ -22,7 +22,6 @@ public class Templates {
         """
 		   {0}
 
-		   import static java.util.Objects.requireNonNull;
 		   {1}
 
 		   /** Builder class for '{'@link {2}'}' */
@@ -57,6 +56,14 @@ public class Templates {
 		     public {2}{10} build() '{'
 		       return new {2}{10}({7});
 		     '}'
+
+		     private static <T> T requireNonNull(@Nullable T obj) '{'
+		       if (obj == null) '{'
+		         throw new IllegalStateException(\"{2}Builder expects all nonnull values to not be null \");
+		       '}'
+		       return obj;
+		     '}'
+
 		   """,
         packageName.isBlank() ? "" : "package " + packageName + ";",
         imports,
@@ -99,15 +106,25 @@ public class Templates {
   }
 
   static String methodGetter(CharSequence componentName, String type, String shortName) {
+    var typeName = type;
+    var index = typeName.lastIndexOf(".");
+    var isNested = index != -1;
+    if (isNested) {
+      typeName = new StringBuilder(typeName).insert(index + 1, "@Nullable ").toString();
+    }
+
     return MessageFormat.format(
         """
 
-		     /** Return the current value for '{'@code {0}'}'. */
-		     public {1} {0}() '{'
-		       return {0};
+		     /** Return the current value for '{'@code {0}'}'. */{0}
+		     public {2} {1}() '{'
+		       return {1};
 		     '}'
 		   """,
-        componentName, type, shortName.replace(".", "$"));
+        isNested || Utils.isNullable(type) ? "" : "\n   @Nullable",
+        componentName,
+        typeName,
+        shortName.replace(".", "$"));
   }
 
   static String methodAdd(

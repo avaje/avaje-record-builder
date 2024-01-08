@@ -33,7 +33,11 @@ import io.avaje.prism.GenerateUtils;
 
 @GenerateUtils
 @GenerateAPContext
-@SupportedAnnotationTypes({RecordBuilderPrism.PRISM_TYPE, ImportPrism.PRISM_TYPE})
+@SupportedAnnotationTypes({
+  RecordBuilderPrism.PRISM_TYPE,
+  ImportPrism.PRISM_TYPE,
+  GlobalConfigPrism.PRISM_TYPE
+})
 public final class RecordProcessor extends AbstractProcessor {
 
   @Override
@@ -45,10 +49,16 @@ public final class RecordProcessor extends AbstractProcessor {
   public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
     APContext.init(env);
+    GlobalSettings.init();
   }
 
   @Override
   public boolean process(Set<? extends TypeElement> tes, RoundEnvironment roundEnv) {
+
+    roundEnv.getElementsAnnotatedWith(typeElement(GlobalConfigPrism.PRISM_TYPE)).stream()
+        .map(GlobalConfigPrism::getInstanceOn)
+        .findFirst()
+        .ifPresent(GlobalSettings::configure);
 
     final var globalTypeInitializers =
         roundEnv.getElementsAnnotatedWith(typeElement(GlobalPrism.PRISM_TYPE)).stream()
@@ -83,6 +93,8 @@ public final class RecordProcessor extends AbstractProcessor {
       } catch (IOException e) {
         // Can't read module, it's whatever
       }
+      GlobalSettings.clear();
+      APContext.clear();
     }
     return false;
   }
@@ -128,7 +140,7 @@ public final class RecordProcessor extends AbstractProcessor {
       String shortName,
       List<? extends RecordComponentElement> components,
       BuilderPrism prism) {
-    boolean getters = prism.getters();
+    boolean getters = GlobalSettings.getters() || prism.getters();
 
     for (final var element : components) {
       final var type = UType.parse(element.asType());

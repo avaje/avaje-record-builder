@@ -67,7 +67,7 @@ final class RecordModel {
     for (final var element : components) {
       final var uType = UType.parse(element.asType());
 
-      String defaultVal = "";
+      String defaultVal = " = null";
       final DefaultValuePrism initPrism = DefaultValuePrism.getInstanceOn(element);
       if (initPrism != null) {
         defaultVal = " = " + initPrism.value();
@@ -92,14 +92,23 @@ final class RecordModel {
           }
         }
       }
+      var typename =
+          uType
+              .shortType()
+              .transform(ProcessorUtils::trimAnnotations)
+              .transform(this::shortRawType);
+
+      var index = typename.lastIndexOf(".");
+      var isNested = index != -1;
+      if (isNested) {
+        typename = new StringBuilder(typename).insert(index + 1, "@Nullable ").toString();
+      }
 
       builder.append(
-          "  @Nullable private %s %s%s;\n"
+          "  %sprivate %s %s%s;\n"
               .formatted(
-                  uType
-                      .shortType()
-                      .transform(ProcessorUtils::trimAnnotations)
-                      .transform(this::shortRawType),
+                  isNested || Utils.isNullable(uType.shortType()) ? "" : "@Nullable ",
+                  typename,
                   element.getSimpleName(),
                   defaultVal));
     }
