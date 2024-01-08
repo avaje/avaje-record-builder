@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import javax.lang.model.element.RecordComponentElement;
@@ -50,6 +51,17 @@ final class RecordModel {
         .forEach(importTypes::addAll);
   }
 
+  void addImport(String imports) {
+    importTypes.add(imports);
+  }
+
+  void nullableAnnotation(String fallback) {
+    importTypes.stream()
+        .filter(s -> s.endsWith("Nullable"))
+        .findAny()
+        .ifPresentOrElse(x -> {}, () -> importTypes.add(fallback));
+  }
+
   String fields() {
     final var builder = new StringBuilder();
     for (final var element : components) {
@@ -82,7 +94,7 @@ final class RecordModel {
       }
 
       builder.append(
-          "  private %s %s%s;\n"
+          "  @Nullable private %s %s%s;\n"
               .formatted(
                   uType
                       .shortType()

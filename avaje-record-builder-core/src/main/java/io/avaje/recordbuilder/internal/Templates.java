@@ -9,6 +9,7 @@ public class Templates {
       String packageName,
       String imports,
       String shortName,
+      String implementsStr,
       String fields,
       String constructor,
       String constructorBody,
@@ -21,16 +22,18 @@ public class Templates {
         """
 		   {0}
 
+		   import static java.util.Objects.requireNonNull;
 		   {1}
 
 		   /** Builder class for '{'@link {2}'}' */
 		   @Generated("avaje-record-builder")
-		   public class {2}Builder{8} '{'
+		   public class {2}Builder{8} %s'{'
+
 		   {3}
 
 		     private {2}Builder() '{'
 		     '}'
-		   """
+		   """.formatted(implementsStr)
             + constructor(constructor)
             + """
 
@@ -38,21 +41,21 @@ public class Templates {
 		      * Return a new builder with all fields set to default Java values
 		      */
 		     public static{9}{2}Builder{10} builder() '{'
-		         return new {2}Builder{10}();
+		       return new {2}Builder{10}();
 		     '}'
 
 		     /**
 		      * Return a new builder with all fields set to the values taken from the given record instance
 		      */
 		     public static{9}{2}Builder{10} builder({2}{10} from) '{'
-		         return new {2}Builder{10}({6});
+		       return new {2}Builder{10}({6});
 		     '}'
 
 		     /**
 		      * Return a new {2} instance with all fields set to the current values in this builder
 		      */
 		     public {2}{10} build() '{'
-		         return new {2}{10}({7});
+		       return new {2}{10}({7});
 		     '}'
 		   """,
         packageName.isBlank() ? "" : "package " + packageName + ";",
@@ -82,13 +85,14 @@ public class Templates {
 
   static String methodSetter(
       CharSequence componentName, String type, String shortName, String typeParams) {
+
     return MessageFormat.format(
         """
 
 		     /** Set a new value for '{'@code {0}'}'. */
 		     public {2}Builder{3} {0}({1} {0}) '{'
-		         this.{0} = {0};
-		         return this;
+		       this.{0} = {0};
+		       return this;
 		     '}'
 		   """,
         componentName, type, shortName.replace(".", "$"), typeParams);
@@ -100,7 +104,7 @@ public class Templates {
 
 		     /** Return the current value for '{'@code {0}'}'. */
 		     public {1} {0}() '{'
-		         return {0};
+		       return {0};
 		     '}'
 		   """,
         componentName, type, shortName.replace(".", "$"));
@@ -114,8 +118,8 @@ public class Templates {
 
 		     /** Add new element to the '{'@code {0}'}' collection. */
 		     public {2}Builder{5} add{3}({4} element) '{'
-		         this.{0}.add(element);
-		         return this;
+		       this.{0}.add(element);
+		       return this;
 		     '}'
 		   """,
         componentName, type, shortName.replace(".", "$"), upperCamel, param0, typeParams);
@@ -134,8 +138,8 @@ public class Templates {
 
 		     /** Add new key/value pair to the '{'@code {0}'}' map. */
 		     public {2}Builder{6} put{3}({4} key, {5} value) '{'
-		         this.{0}.put(key, value);
-		         return this;
+		       this.{0}.put(key, value);
+		       return this;
 		     '}'
 		   """,
         componentName, type, shortName.replace(".", "$"), upperCamel, param0, param1, typeParams);

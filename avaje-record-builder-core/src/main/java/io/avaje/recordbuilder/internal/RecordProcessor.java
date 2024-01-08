@@ -70,10 +70,12 @@ public final class RecordProcessor extends AbstractProcessor {
 
     roundEnv.getElementsAnnotatedWith(typeElement(ImportPrism.PRISM_TYPE)).stream()
         .map(ImportPrism::getInstanceOn)
-        .map(ImportPrism::value)
-        .flatMap(List::stream)
-        .map(APContext::asTypeElement)
-        .forEach(this::readElement);
+        .forEach(
+            prism -> {
+              prism.value().stream()
+                  .map(APContext::asTypeElement)
+                  .forEach(t -> readElement(t, prism));
+            });
 
     if (roundEnv.processingOver()) {
       try (var reader = getModuleInfoReader()) {
@@ -87,13 +89,14 @@ public final class RecordProcessor extends AbstractProcessor {
   }
 
   private void readElement(TypeElement type) {
-    readElement(type, false);
+    readElement(type, RecordBuilderPrism.getInstanceOn(type));
   }
 
-  private void readElement(TypeElement type, boolean isImported) {
+  private void readElement(TypeElement type, BuilderPrism prism) {
 
     final var components = type.getRecordComponents();
     final var packageElement = elements().getPackageOf(type);
+    boolean isImported = prism.imported();
     var unnamed = Utils.isInUnnamedPackage(isImported, packageElement);
     final var packageName =
         unnamed
@@ -111,9 +114,10 @@ public final class RecordProcessor extends AbstractProcessor {
               .map(Object::toString)
               .collect(joining(", "))
               .transform(s -> s.isEmpty() ? s : "<" + s + ">");
-      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported, packageName));
-      final var writeGetters = RecordBuilderPrism.getInstanceOn(type).getters();
-      methods(writer, typeParams, shortName, components, writeGetters);
+      writer.append(
+          ClassBodyBuilder.createClassStart(prism, type, typeParams, isImported, packageName));
+
+      methods(writer, typeParams, shortName, components, prism);
     } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -124,9 +128,8 @@ public final class RecordProcessor extends AbstractProcessor {
       String typeParams,
       String shortName,
       List<? extends RecordComponentElement> components,
-      Boolean writeGetters) {
-
-    boolean getters = Boolean.TRUE.equals(writeGetters);
+      BuilderPrism prism) {
+    boolean getters = prism.getters();
 
     for (final var element : components) {
       final var type = UType.parse(element.asType());
