@@ -49,7 +49,6 @@ public final class RecordProcessor extends AbstractProcessor {
 
   @Override
   public boolean process(Set<? extends TypeElement> tes, RoundEnvironment roundEnv) {
-
     final var globalTypeInitializers =
         roundEnv.getElementsAnnotatedWith(typeElement(GlobalPrism.PRISM_TYPE)).stream()
             .map(GlobalPrism::getInstanceOn)
@@ -57,14 +56,11 @@ public final class RecordProcessor extends AbstractProcessor {
 
     InitMap.putAll(globalTypeInitializers);
     APContext.setProjectModuleElement(tes, roundEnv);
-    for (final TypeElement type :
-        ElementFilter.typesIn(
-            roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
+    for (final TypeElement type : ElementFilter.typesIn(roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
       if (type.getKind() != ElementKind.RECORD) {
         logError(type, "Builders can only be generated for record classes");
         continue;
       }
-
       readElement(type);
     }
 
@@ -77,7 +73,6 @@ public final class RecordProcessor extends AbstractProcessor {
 
     if (roundEnv.processingOver()) {
       try (var reader = getModuleInfoReader()) {
-
         ModuleReader.read(reader);
       } catch (IOException e) {
         // Can't read module, it's whatever
@@ -91,7 +86,6 @@ public final class RecordProcessor extends AbstractProcessor {
   }
 
   private void readElement(TypeElement type, boolean isImported) {
-
     final var components = type.getRecordComponents();
     final var packageElement = elements().getPackageOf(type);
     var unnamed = Utils.isInUnnamedPackage(isImported, packageElement);
@@ -140,7 +134,6 @@ public final class RecordProcessor extends AbstractProcessor {
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {
-
         String param0ShortType = type.param0().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
@@ -149,7 +142,6 @@ public final class RecordProcessor extends AbstractProcessor {
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Map")) {
-
         String param0ShortType = type.param0().shortType();
         String param1ShortType = type.param1().shortType();
         Name simpleName = element.getSimpleName();
