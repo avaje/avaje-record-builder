@@ -59,7 +59,7 @@ public @interface RecordBuilder {
   }
 
   @Retention(SOURCE)
-  @Target({TYPE, PACKAGE, MODULE})
+  @Target({PACKAGE, MODULE})
   @interface GlobalConfig {
 
     /** Whether getter methods should be generated on the builder */

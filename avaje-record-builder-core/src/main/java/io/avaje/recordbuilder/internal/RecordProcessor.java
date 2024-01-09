@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toMap;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -55,18 +56,32 @@ public final class RecordProcessor extends AbstractProcessor {
   @Override
   public boolean process(Set<? extends TypeElement> tes, RoundEnvironment roundEnv) {
 
-    roundEnv.getElementsAnnotatedWith(typeElement(GlobalConfigPrism.PRISM_TYPE)).stream()
-        .map(GlobalConfigPrism::getInstanceOn)
-        .findFirst()
-        .ifPresent(GlobalSettings::configure);
+    APContext.setProjectModuleElement(tes, roundEnv);
+    if (!GlobalSettings.initialized()) {
 
+      roundEnv.getElementsAnnotatedWith(typeElement(GlobalConfigPrism.PRISM_TYPE)).stream()
+          .map(GlobalConfigPrism::getInstanceOn)
+          .findFirst()
+          .or(
+              () -> {
+                var module = APContext.getProjectModuleElement();
+                return GlobalConfigPrism.getOptionalOn(module)
+                    .or(
+                        () ->
+                            module.getEnclosedElements().stream()
+                                .map(GlobalConfigPrism::getOptionalOn)
+                                .findAny()
+                                .orElse(Optional.empty()));
+              })
+          .ifPresent(GlobalSettings::configure);
+    }
     final var globalTypeInitializers =
         roundEnv.getElementsAnnotatedWith(typeElement(GlobalPrism.PRISM_TYPE)).stream()
             .map(GlobalPrism::getInstanceOn)
             .collect(toMap(s -> s.type().toString(), GlobalPrism::value));
 
     InitMap.putAll(globalTypeInitializers);
-    APContext.setProjectModuleElement(tes, roundEnv);
+
     for (final TypeElement type :
         ElementFilter.typesIn(
             roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
@@ -146,11 +161,7 @@ public final class RecordProcessor extends AbstractProcessor {
       final var type = UType.parse(element.asType());
       writer.append(methodSetter(element.getSimpleName(), type.shortType(), shortName, typeParams));
       if (getters) {
-        writer.append(
-            methodGetter(
-                element.getSimpleName(),
-                type,
-                shortName));
+        writer.append(methodGetter(element.getSimpleName(), type, shortName));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {

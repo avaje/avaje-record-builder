@@ -10,6 +10,7 @@ public final class GlobalSettings {
 
   public static final class Ctx {
     private boolean getters;
+    private boolean initialized;
     private boolean enforceNullSafety;
     private String nullableAnnotation;
 
@@ -28,6 +29,11 @@ public final class GlobalSettings {
     CTX.get().getters = prism.getters();
     CTX.get().enforceNullSafety = prism.enforceNullSafety();
     CTX.get().nullableAnnotation = prism.nullableAnnotation().toString();
+    CTX.get().initialized = true;
+  }
+
+  public static boolean initialized() {
+    return CTX.get().initialized;
   }
 
   public static boolean getters() {
