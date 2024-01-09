@@ -103,11 +103,13 @@ public class ClassBodyBuilder {
 
     return components.stream()
         .map(
-            element ->
-                !Utils.isNullableType(UType.parse(element.asType()).mainType())
-                        && Utils.isNonNullable(element, prism)
-                    ? "requireNonNull(%s)".formatted(element.getSimpleName())
-                    : element.getSimpleName())
+            element -> {
+              final var simpleName = element.getSimpleName();
+              return !Utils.isNullableType(UType.parse(element.asType()).mainType())
+                      && Utils.isNonNullable(element, prism)
+                  ? "requireNonNull(%s, \"%s\")".formatted(simpleName, simpleName)
+                  : simpleName;
+            })
         .collect(joining(", "));
   }
 }

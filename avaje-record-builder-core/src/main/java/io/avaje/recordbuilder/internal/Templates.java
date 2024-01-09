@@ -57,9 +57,10 @@ public class Templates {
 		       return new {2}{10}({7});
 		     '}'
 
-		     private static <T> T requireNonNull(@Nullable T obj) '{'
+		     private static <T> T requireNonNull(@Nullable T obj, String fieldName) '{'
 		       if (obj == null) '{'
-		         throw new IllegalStateException(\"{2}Builder expects all nonnull values to not be null \");
+		         throw new IllegalStateException(
+		             \"{2}Builder expected a value for property %s, but was null.\".formatted(fieldName));
 		       '}'
 		       return obj;
 		     '}'
