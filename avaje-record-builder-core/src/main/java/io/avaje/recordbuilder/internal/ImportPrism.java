@@ -291,20 +291,6 @@ public List<TypeMirror> builderInterfaces() {
     return null;
   }
 
-  private static <T> T getValue(
-      Map<String, AnnotationValue> memberValues,
-      Map<String, AnnotationValue> defaults,
-      String name,
-      Class<T> clazz) {
-    AnnotationValue av = memberValues.get(name);
-    if (av == null) av = defaults.get(name);
-    if (av == null) {
-      return null;
-    }
-    if (clazz.isInstance(av.getValue())) return clazz.cast(av.getValue());
-    return null;
-  }
-
   private static <T> List<T> getArrayValues(
       Map<String, AnnotationValue> memberValues,
       Map<String, AnnotationValue> defaults,
