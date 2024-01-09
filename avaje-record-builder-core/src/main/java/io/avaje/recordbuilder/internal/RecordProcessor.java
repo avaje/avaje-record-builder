@@ -22,6 +22,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
@@ -48,7 +49,6 @@ public final class RecordProcessor extends AbstractProcessor {
 
   @Override
   public boolean process(Set<? extends TypeElement> tes, RoundEnvironment roundEnv) {
-
     final var globalTypeInitializers =
         roundEnv.getElementsAnnotatedWith(typeElement(GlobalPrism.PRISM_TYPE)).stream()
             .map(GlobalPrism::getInstanceOn)
@@ -56,14 +56,11 @@ public final class RecordProcessor extends AbstractProcessor {
 
     InitMap.putAll(globalTypeInitializers);
     APContext.setProjectModuleElement(tes, roundEnv);
-    for (final TypeElement type :
-        ElementFilter.typesIn(
-            roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
-      if (type.getRecordComponents().isEmpty()) {
+    for (final TypeElement type : ElementFilter.typesIn(roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
+      if (type.getKind() != ElementKind.RECORD) {
         logError(type, "Builders can only be generated for record classes");
         continue;
       }
-
       readElement(type);
     }
 
@@ -76,7 +73,6 @@ public final class RecordProcessor extends AbstractProcessor {
 
     if (roundEnv.processingOver()) {
       try (var reader = getModuleInfoReader()) {
-
         ModuleReader.read(reader);
       } catch (IOException e) {
         // Can't read module, it's whatever
@@ -90,73 +86,93 @@ public final class RecordProcessor extends AbstractProcessor {
   }
 
   private void readElement(TypeElement type, boolean isImported) {
-
     final var components = type.getRecordComponents();
+    final var packageElement = elements().getPackageOf(type);
+    var unnamed = Utils.isInUnnamedPackage(isImported, packageElement);
     final var packageName =
-        elements().getPackageOf(type).getQualifiedName().toString()
-            + (isImported ? ".builder" : "");
+        unnamed
+            ? ""
+            : packageElement.getQualifiedName().toString() + (isImported ? ".builder" : "");
     final var shortName = type.getSimpleName().toString();
 
     try (var writer =
-        new Append(createSourceFile(packageName + "." + shortName + "Builder").openWriter())) {
+        new Append(
+            createSourceFile((unnamed ? "" : packageName + ".") + shortName + "Builder")
+                .openWriter())) {
 
       var typeParams =
           type.getTypeParameters().stream()
               .map(Object::toString)
               .collect(joining(", "))
               .transform(s -> s.isEmpty() ? s : "<" + s + ">");
-      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported));
+      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported, packageName));
       final var writeGetters = RecordBuilderPrism.getInstanceOn(type).getters();
-      methods(writer, typeParams, shortName, components, writeGetters);
+      methods(new WriteContext(writer, typeParams, shortName, components, writeGetters));
     } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
-  private void methods(
-      Append writer,
-      String typeParams,
-      String shortName,
-      List<? extends RecordComponentElement> components,
-      Boolean writeGetters) {
+  private record WriteContext(
+    Append writer,
+    String typeParams,
+    String shortName,
+    List<? extends RecordComponentElement> components,
+    Boolean writeGetters
+  ) {
+    boolean getters() {
+      return Boolean.TRUE.equals(writeGetters);
+    }
 
-    boolean getters = Boolean.TRUE.equals(writeGetters);
+    void append(String content) {
+      writer.append(content);
+    }
+  }
 
-    for (final var element : components) {
+  private void methods(WriteContext ctx) {
+    for (final var element : ctx.components()) {
       final var type = UType.parse(element.asType());
-      writer.append(methodSetter(element.getSimpleName(), type.shortType(), shortName, typeParams));
-      if (getters) {
-        writer.append(
-            methodGetter(
-                element.getSimpleName(),
-                type.shortType().transform(ProcessorUtils::trimAnnotations),
-                shortName));
+      ctx.append(methodSetter(element.getSimpleName(), type.shortType(), ctx.shortName(), ctx.typeParams()));
+      if (ctx.getters()) {
+        writeGetter(ctx, element, type);
       }
-
       if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {
-
-        String param0ShortType = type.param0().shortType();
-        Name simpleName = element.getSimpleName();
-        writer.append(
-            methodAdd(
-                simpleName.toString(), type.shortType(), shortName, param0ShortType, typeParams));
+        writeAdd(ctx, element, type);
       }
-
       if (APContext.isAssignable(type.mainType(), "java.util.Map")) {
-
-        String param0ShortType = type.param0().shortType();
-        String param1ShortType = type.param1().shortType();
-        Name simpleName = element.getSimpleName();
-        writer.append(
-            methodPut(
-                simpleName.toString(),
-                type.shortType().transform(ProcessorUtils::trimAnnotations),
-                shortName,
-                param0ShortType,
-                param1ShortType,
-                typeParams));
+        writePut(ctx, element, type);
       }
     }
-    writer.append("}");
+    ctx.append("}");
+  }
+
+  private static void writePut(WriteContext ctx, RecordComponentElement element, UType type) {
+    String param0ShortType = type.param0().shortType();
+    String param1ShortType = type.param1().shortType();
+    Name simpleName = element.getSimpleName();
+    ctx.append(
+      methodPut(
+        simpleName.toString(),
+        type.shortType().transform(ProcessorUtils::trimAnnotations),
+        ctx.shortName(),
+        param0ShortType,
+        param1ShortType,
+        ctx.typeParams()));
+  }
+
+  private static void writeAdd(WriteContext ctx, RecordComponentElement element, UType type) {
+    String param0ShortType = type.param0().shortType();
+    Name simpleName = element.getSimpleName();
+    ctx.append(
+      methodAdd(
+        simpleName.toString(), type.shortType(), ctx.shortName(), param0ShortType, ctx.typeParams()));
+  }
+
+  private static void writeGetter(WriteContext ctx, RecordComponentElement element, UType type) {
+    ctx.append(
+      methodGetter(
+        element.getSimpleName(),
+        type.shortType().transform(ProcessorUtils::trimAnnotations),
+        ctx.shortName()));
   }
 }
