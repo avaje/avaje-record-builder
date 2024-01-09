@@ -1,7 +1,6 @@
 package io.avaje.recordbuilder.internal;
 
 import java.text.MessageFormat;
-import java.util.function.Consumer;
 
 public class Templates {
   private Templates() {}
@@ -20,7 +19,7 @@ public class Templates {
 
     return MessageFormat.format(
         """
-		   package {0};
+		   {0}
 
 		   {1}
 
@@ -28,12 +27,12 @@ public class Templates {
 		   @Generated("avaje-record-builder")
 		   public class {2}Builder{8} '{'
 		   {3}
+
 		     private {2}Builder() '{'
 		     '}'
-
-		     private {2}Builder({4}) '{'
-		       {5}
-		     '}'
+		   """
+            + constructor(constructor)
+            + """
 
 		     /**
 		      * Return a new builder with all fields set to default Java values
@@ -56,7 +55,7 @@ public class Templates {
 		         return new {2}{10}({7});
 		     '}'
 		   """,
-        packageName,
+        packageName.isBlank() ? "" : "package " + packageName + ";",
         imports,
         shortName,
         fields,
@@ -67,6 +66,18 @@ public class Templates {
         fullTypeParams,
         fullTypeParams.transform(s -> s.isEmpty() ? " " : " " + s + " "),
         typeParams);
+  }
+
+  private static String constructor(String constructor) {
+
+    return constructor.isBlank()
+        ? ""
+        : """
+
+		     private {2}Builder({4}) '{'
+		       {5}
+		     '}'
+		   """;
   }
 
   static String methodSetter(

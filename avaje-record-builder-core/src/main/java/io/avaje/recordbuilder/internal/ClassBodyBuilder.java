@@ -1,27 +1,24 @@
 package io.avaje.recordbuilder.internal;
 
-import static io.avaje.recordbuilder.internal.APContext.elements;
 import static io.avaje.recordbuilder.internal.Templates.classTemplate;
 import static java.util.stream.Collectors.joining;
 
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeKind;
 
-// TODO better name?
 public class ClassBodyBuilder {
 
-  static String createClassStart(TypeElement type, String typeParams, boolean isImported) {
+  private ClassBodyBuilder() {}
+
+  static String createClassStart(
+      TypeElement type, String typeParams, boolean isImported, String packageName) {
 
     final var components = type.getRecordComponents();
-    final var packageName =
-        elements().getPackageOf(type).getQualifiedName().toString()
-            + (isImported ? ".builder" : "");
+
     final var shortName = type.getSimpleName().toString();
     if (type.getEnclosingElement() instanceof TypeElement) {
       isImported = true;
