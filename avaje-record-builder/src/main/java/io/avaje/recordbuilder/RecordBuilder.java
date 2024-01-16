@@ -10,7 +10,7 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.jspecify.annotations.Nullable;
+import io.avaje.lang.Nullable;
 
 /** Generate a builder class for the given record */
 @Documented
@@ -72,7 +72,10 @@ public @interface RecordBuilder {
      */
     boolean enforceNullSafety() default false;
 
-    /** What nullable annotation to use for the builder fields. */
+    /**
+     * Specify the Nullable annotation to use for the builder fields. If JSpecify is detected on the
+     * classpath, the generator will use jspecify's annotations by default
+     */
     Class<? extends Annotation> nullableAnnotation() default Nullable.class;
   }
 }

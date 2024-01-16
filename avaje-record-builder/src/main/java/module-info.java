@@ -1,5 +1,5 @@
 module io.avaje.recordbuilder {
 
   exports io.avaje.recordbuilder;
-  requires transitive org.jspecify;
+  requires transitive io.avaje.lang;
 }

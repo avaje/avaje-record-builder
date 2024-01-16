@@ -16,7 +16,12 @@ public final class GlobalSettings {
     private boolean enforceNullSafety;
     private String nullableAnnotation;
 
-    public Ctx() {}
+    Ctx() {
+      var jspecify = "org.jspecify.annotations.Nullable";
+      if (APContext.typeElement(jspecify) != null) {
+        nullableAnnotation = jspecify;
+      }
+    }
   }
 
   public static void init() {
@@ -30,18 +35,14 @@ public final class GlobalSettings {
   public static void configure(GlobalConfigPrism prism) {
     CTX.get().getters = prism.getters();
     CTX.get().enforceNullSafety = prism.enforceNullSafety();
-    CTX.get().nullableAnnotation = prism.nullableAnnotation().toString();
+    if (CTX.get().nullableAnnotation.isBlank()) {
+      CTX.get().nullableAnnotation = prism.nullableAnnotation().toString();
+    }
     CTX.get().initialized = true;
   }
 
   public static boolean initialized() {
     return CTX.get().initialized;
-  }
-
-  public static void nullMarked() {
-    if (NullMarkedPrism.isPresent(APContext.getProjectModuleElement())) {
-      CTX.get().enforceNullSafety = true;
-    }
   }
 
   public static boolean getters() {
@@ -58,7 +59,7 @@ public final class GlobalSettings {
 
   private static boolean checkNullMarked(Element e) {
     var enclosing = e.getEnclosingElement();
-    if (enclosing == null) {
+    if (enclosing == null || NullUnmarkedPrism.isPresent(enclosing)) {
       return false;
     } else if (NullMarkedPrism.isPresent(enclosing) || NonNullApiPrism.isPresent(enclosing)) {
       return true;

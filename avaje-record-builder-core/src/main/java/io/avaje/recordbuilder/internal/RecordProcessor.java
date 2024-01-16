@@ -74,7 +74,6 @@ public final class RecordProcessor extends AbstractProcessor {
                                 .orElse(Optional.empty()));
               })
           .ifPresent(GlobalSettings::configure);
-      GlobalSettings.nullMarked();
     }
     final var globalTypeInitializers =
         roundEnv.getElementsAnnotatedWith(typeElement(GlobalPrism.PRISM_TYPE)).stream()
