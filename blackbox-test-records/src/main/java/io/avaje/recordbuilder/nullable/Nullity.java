@@ -6,4 +6,4 @@ import org.jspecify.annotations.Nullable;
 import io.avaje.recordbuilder.RecordBuilder;
 
 @RecordBuilder
-public record Nullity(@NonNull String nonNull, @Nullable String nully) {}
+public record Nullity(@NonNull String nonNull, @Nullable String nully, String marked) {}

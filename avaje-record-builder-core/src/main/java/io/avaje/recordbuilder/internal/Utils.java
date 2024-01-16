@@ -40,7 +40,7 @@ final class Utils {
         return false;
       }
     }
-    return prism.enforceNullSafety() || GlobalSettings.enforceNullSafety();
+    return prism.enforceNullSafety() || GlobalSettings.enforceNullSafety(e);
   }
 
   public static boolean isNullableType(String type) {

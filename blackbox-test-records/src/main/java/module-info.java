@@ -1,6 +1,6 @@
-import io.avaje.recordbuilder.RecordBuilder;
+import org.jspecify.annotations.NullMarked;
 
-@RecordBuilder.GlobalConfig(enforceNullSafety = true)
+@NullMarked
 module io.avaje.spi.blackbox {
   requires static io.avaje.recordbuilder;
   requires io.avaje.validation.contraints;
