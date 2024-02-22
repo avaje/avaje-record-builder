@@ -1,5 +1,14 @@
 package io.avaje.recordbuilder.internal;
 
+import static java.util.Map.entry;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.Set;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.util.ElementFilter;
 
@@ -14,5 +23,27 @@ final class Utils {
             && module.isUnnamed()
             && ElementFilter.packagesIn(module.getEnclosedElements()).stream()
                 .allMatch(PackageElement::isUnnamed);
+  }
+
+  /**
+   * Return true if the element is non-nullable.
+   *
+   * @param prism
+   */
+  public static boolean isNonNullable(Element e, BuilderPrism prism) {
+
+    for (final AnnotationMirror mirror : UType.parse(e.asType()).annotations()) {
+      if (mirror.getAnnotationType().toString().endsWith("NonNull")) {
+        return true;
+      }
+      if (mirror.getAnnotationType().toString().endsWith("Nullable")) {
+        return false;
+      }
+    }
+    return prism.enforceNullSafety() || GlobalSettings.enforceNullSafety(e);
+  }
+
+  public static boolean isNullableType(String type) {
+    return InitMap.get(type) != null;
   }
 }

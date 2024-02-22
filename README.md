@@ -8,8 +8,7 @@ Uses Annotation processing to generate builders for records.
 ## Distinguishing features
 - By default, Collection/Optional Types will not be null (an empty collection/optional will be provided)
 - We can choose the default value of a record component in the generated builder
-- Copies nullability annotations to the generated setters to aid in static analysis
-
+- Support for generating Checker/NullAway compliant builders for static null analysis.
 ## Usage
 ### 1. Add dependency:
 ```xml
@@ -22,7 +21,7 @@ Uses Annotation processing to generate builders for records.
 </dependency>
 ```
 
-When working with Java modules you need to add the annotation module as a static dependency.
+Add the annotation module as a static dependency when working with Java modules.
 ```java
 module my.module {
   requires static io.avaje.recordbuilder;

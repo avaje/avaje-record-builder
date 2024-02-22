@@ -9,16 +9,20 @@ import java.util.Optional;
 
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 
 public class ClassBodyBuilder {
 
   private ClassBodyBuilder() {}
 
   static String createClassStart(
-      TypeElement type, String typeParams, boolean isImported, String packageName) {
+      BuilderPrism prism,
+      TypeElement type,
+      String typeParams,
+      boolean isImported,
+      String packageName) {
 
     final var components = type.getRecordComponents();
-
     final var shortName = type.getSimpleName().toString();
     if (type.getEnclosingElement() instanceof TypeElement) {
       isImported = true;
@@ -39,6 +43,14 @@ public class ClassBodyBuilder {
 
     final RecordModel rm = new RecordModel(type, isImported, components, utype);
     rm.initialImports();
+    rm.nullableAnnotation(GlobalSettings.nullableAnnotation().orElse(prism.nullableAnnotation().toString()));
+    var implementsStr =
+        prism.builderInterfaces().stream()
+            .map(TypeMirror::toString)
+            .peek(rm::addImport)
+            .map(ProcessorUtils::shortType)
+            .collect(joining(", "))
+            .transform(s -> s.isEmpty() ? s : "implements " + s);
     final String fieldString = rm.fields();
     final var imports = rm.importsFormat();
     final var numberOfComponents = components.size();
@@ -48,11 +60,12 @@ public class ClassBodyBuilder {
     final String builderFrom =
         builderFrom(components).transform(s -> numberOfComponents > 5 ? "\n        " + s : s);
     final String build =
-        build(components).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
+        build(components, prism).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
     return classTemplate(
         packageName,
         imports,
         shortName,
+        implementsStr,
         fieldString,
         constructorParams,
         constructorBody,
@@ -85,7 +98,18 @@ public class ClassBodyBuilder {
         .collect(joining(", "));
   }
 
-  private static String build(List<? extends RecordComponentElement> components) {
-    return components.stream().map(RecordComponentElement::getSimpleName).collect(joining(", "));
+  private static String build(
+      List<? extends RecordComponentElement> components, BuilderPrism prism) {
+
+    return components.stream()
+        .map(
+            element -> {
+              final var simpleName = element.getSimpleName();
+              return !Utils.isNullableType(UType.parse(element.asType()).mainType())
+                      && Utils.isNonNullable(element, prism)
+                  ? "requireNonNull(%s, \"%s\")".formatted(simpleName, simpleName)
+                  : simpleName;
+            })
+        .collect(joining(", "));
   }
 }

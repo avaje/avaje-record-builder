@@ -7,6 +7,15 @@ public class InitMap {
   private static final Map<String, String> defaultsMap = new HashMap<>();
 
   static {
+    put("byte", "0");
+    put("short", "0");
+    put("int", "0");
+    put("long", "0L");
+    put("float", "0.0f");
+    put("double", "0.0d");
+    put("char", "\u0000");
+    put("boolean", "false");
+
     // TODO add the rest of the collections
     final var util = "java.util.";
     final var initDiamond = "new java.util.%s<>()";
