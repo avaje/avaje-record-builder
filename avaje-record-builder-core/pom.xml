@@ -14,7 +14,7 @@
 	</scm>
 	
   <properties>
-    <avaje.prisms.version>1.21</avaje.prisms.version>
+    <avaje.prisms.version>1.22</avaje.prisms.version>
   </properties>
 
   <dependencies>
