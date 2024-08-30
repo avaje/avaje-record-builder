@@ -2,10 +2,10 @@
 name: JDK EA
 
 on:
-  pull_request:
+  # pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: '39 6 * * 1,3,5'
+  # schedule:
+  #   - cron: '39 6 * * 1,3,5'
 
 jobs:
   build:
