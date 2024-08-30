@@ -36,13 +36,12 @@ final class Utils {
   }
 
   private static boolean checkNullMarked(Element e) {
-    var enclosing = e.getEnclosingElement();
-    if (enclosing == null || NullUnmarkedPrism.isPresent(enclosing)) {
+    if (e == null || NullUnmarkedPrism.isPresent(e)) {
       return false;
-    } else if (NullMarkedPrism.isPresent(enclosing)) {
+    } else if (NullMarkedPrism.isPresent(e)) {
       return true;
     }
-    return checkNullMarked(enclosing);
+    return checkNullMarked(e.getEnclosingElement());
   }
 
   public static boolean isNullableType(String type) {
