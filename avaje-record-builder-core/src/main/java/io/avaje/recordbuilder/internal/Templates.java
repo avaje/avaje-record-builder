@@ -9,7 +9,6 @@ public class Templates {
       String packageName,
       String imports,
       String shortName,
-      String implementsStr,
       String fields,
       String constructor,
       String constructorBody,
@@ -26,13 +25,13 @@ public class Templates {
 
 		   /** Builder class for '{'@link {2}'}' */
 		   @Generated("avaje-record-builder")
-		   public class {2}Builder{8} %s'{'
+		   public class {2}Builder{8} '{'
 
 		   {3}
 
 		     private {2}Builder() '{'
 		     '}'
-		   """.formatted(implementsStr)
+		   """
             + constructor(constructor)
             + """
 

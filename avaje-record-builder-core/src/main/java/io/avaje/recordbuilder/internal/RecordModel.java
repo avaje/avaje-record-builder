@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import javax.lang.model.element.RecordComponentElement;
@@ -37,6 +36,11 @@ final class RecordModel {
     this.components = components;
     importTypes.add("io.avaje.recordbuilder.Generated");
     importTypes.add("java.util.function.Consumer");
+    importTypes.add("java.util.function.Consumer");
+
+    if (APContext.typeElement(NullablePrism.PRISM_TYPE) != null) {
+      importTypes.add(NullablePrism.PRISM_TYPE);
+    }
     var imports = utype.importTypes();
     imports.remove(type.getQualifiedName().toString());
     importTypes.addAll(imports);
@@ -53,13 +57,6 @@ final class RecordModel {
 
   void addImport(String imports) {
     importTypes.add(imports);
-  }
-
-  void nullableAnnotation(String fallback) {
-    importTypes.stream()
-        .filter(s -> s.endsWith("Nullable"))
-        .findAny()
-        .ifPresentOrElse(x -> {}, () -> importTypes.add(fallback));
   }
 
   String fields() {

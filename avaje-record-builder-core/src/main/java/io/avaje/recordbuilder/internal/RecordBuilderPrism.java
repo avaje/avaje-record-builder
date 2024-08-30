@@ -1,16 +1,13 @@
 package io.avaje.recordbuilder.internal;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 import javax.annotation.processing.Generated;
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.type.TypeMirror;
-import java.util.HashMap;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
@@ -22,15 +19,6 @@ import javax.lang.model.util.ElementFilter;
 final class RecordBuilderPrism implements BuilderPrism {
   /** store prism value of getters */
   private final Boolean _getters;
-
-  /** store prism value of enforceNullSafety */
-  private final Boolean _enforceNullSafety;
-
-  /** store prism value of nullableAnnotation */
-  private final TypeMirror _nullableAnnotation;
-
-  /** store prism value of builderInterfaces */
-  private final List<TypeMirror> _builderInterfaces;
 
   public static final String PRISM_TYPE = "io.avaje.recordbuilder.RecordBuilder";
 
@@ -132,9 +120,6 @@ final class RecordBuilderPrism implements BuilderPrism {
       defaults.put(member.getSimpleName().toString(), member.getDefaultValue());
     }
     _getters = getValue("getters", Boolean.class);
-    _enforceNullSafety = getValue("enforceNullSafety", Boolean.class);
-    _nullableAnnotation = getValue("nullableAnnotation", TypeMirror.class);
-    _builderInterfaces = getArrayValues("builderInterfaces", TypeMirror.class);
     this.values = new Values(memberValues);
     this.mirror = mirror;
     this.isValid = valid;
@@ -149,40 +134,6 @@ final class RecordBuilderPrism implements BuilderPrism {
   @Override
   public Boolean getters() {
     return _getters;
-  }
-
-  /**
-   * Returns a Boolean representing the value of the {@code boolean public abstract boolean
-   * enforceNullSafety() } member of the Annotation.
-   *
-   * @see io.avaje.recordbuilder.RecordBuilder#enforceNullSafety()
-   */
-  @Override
-  public Boolean enforceNullSafety() {
-    return _enforceNullSafety;
-  }
-
-  /**
-   * Returns a TypeMirror representing the value of the {@code java.lang.Class<? extends
-   * java.lang.annotation.Annotation> public abstract Class<? extends
-   * java.lang.annotation.Annotation> nullableAnnotation() } member of the Annotation.
-   *
-   * @see io.avaje.recordbuilder.RecordBuilder#nullableAnnotation()
-   */
-  @Override
-  public TypeMirror nullableAnnotation() {
-    return _nullableAnnotation;
-  }
-
-  /**
-   * Returns a List&lt;TypeMirror&gt; representing the value of the {@code public abstract
-   * Class<?>[] builderInterfaces() } member of the Annotation.
-   *
-   * @see io.avaje.recordbuilder.RecordBuilder#builderInterfaces()
-   */
-  @Override
-  public List<TypeMirror> builderInterfaces() {
-    return _builderInterfaces;
   }
 
   /**
@@ -255,12 +206,6 @@ final class RecordBuilderPrism implements BuilderPrism {
     return result;
   }
 
-  private <T> List<T> getArrayValues(String name, final Class<T> clazz) {
-    final List<T> result = RecordBuilderPrism.getArrayValues(memberValues, defaults, name, clazz);
-    if (result == null) valid = false;
-    return result;
-  }
-
   private static AnnotationMirror getMirror(Element target) {
     for (final var m : target.getAnnotationMirrors()) {
       final CharSequence mfqn =
@@ -282,35 +227,5 @@ final class RecordBuilderPrism implements BuilderPrism {
     }
     if (clazz.isInstance(av.getValue())) return clazz.cast(av.getValue());
     return null;
-  }
-
-  private static <T> List<T> getArrayValues(
-      Map<String, AnnotationValue> memberValues,
-      Map<String, AnnotationValue> defaults,
-      String name,
-      final Class<T> clazz) {
-    AnnotationValue av = memberValues.get(name);
-    if (av == null) av = defaults.get(name);
-    if (av == null) {
-      return List.of();
-    }
-    if (av.getValue() instanceof List) {
-      final List<T> result = new ArrayList<>();
-      for (final var v : getValueAsList(av)) {
-        if (clazz.isInstance(v.getValue())) {
-          result.add(clazz.cast(v.getValue()));
-        } else {
-          return List.of();
-        }
-      }
-      return result;
-    } else {
-      return List.of();
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  private static List<AnnotationValue> getValueAsList(AnnotationValue av) {
-    return (List<AnnotationValue>) av.getValue();
   }
 }

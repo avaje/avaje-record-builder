@@ -9,14 +9,12 @@ import java.util.Optional;
 
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
 
 public class ClassBodyBuilder {
 
   private ClassBodyBuilder() {}
 
   static String createClassStart(
-      BuilderPrism prism,
       TypeElement type,
       String typeParams,
       boolean isImported,
@@ -43,14 +41,6 @@ public class ClassBodyBuilder {
 
     final RecordModel rm = new RecordModel(type, isImported, components, utype);
     rm.initialImports();
-    rm.nullableAnnotation(GlobalSettings.nullableAnnotation().orElse(prism.nullableAnnotation().toString()));
-    var implementsStr =
-        prism.builderInterfaces().stream()
-            .map(TypeMirror::toString)
-            .peek(rm::addImport)
-            .map(ProcessorUtils::shortType)
-            .collect(joining(", "))
-            .transform(s -> s.isEmpty() ? s : "implements " + s);
     final String fieldString = rm.fields();
     final var imports = rm.importsFormat();
     final var numberOfComponents = components.size();
@@ -60,12 +50,11 @@ public class ClassBodyBuilder {
     final String builderFrom =
         builderFrom(components).transform(s -> numberOfComponents > 5 ? "\n        " + s : s);
     final String build =
-        build(components, prism).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
+        build(components).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
     return classTemplate(
         packageName,
         imports,
         shortName,
-        implementsStr,
         fieldString,
         constructorParams,
         constructorBody,
@@ -99,14 +88,14 @@ public class ClassBodyBuilder {
   }
 
   private static String build(
-      List<? extends RecordComponentElement> components, BuilderPrism prism) {
+      List<? extends RecordComponentElement> components) {
 
     return components.stream()
         .map(
             element -> {
               final var simpleName = element.getSimpleName();
               return !Utils.isNullableType(UType.parse(element.asType()).mainType())
-                      && Utils.isNonNullable(element, prism)
+                      && Utils.isNonNullable(element)
                   ? "requireNonNull(%s, \"%s\")".formatted(simpleName, simpleName)
                   : simpleName;
             })

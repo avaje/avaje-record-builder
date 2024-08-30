@@ -26,15 +26,6 @@ final class ImportPrism implements BuilderPrism {
   /** store prism value of getters */
   private final Boolean _getters;
 
-  /** store prism value of enforceNullSafety */
-  private final Boolean _enforceNullSafety;
-
-  /** store prism value of nullableAnnotation */
-  private final TypeMirror _nullableAnnotation;
-
-  /** store prism value of builderInterfaces */
-  private final List<TypeMirror> _builderInterfaces;
-
   public static final String PRISM_TYPE = "io.avaje.recordbuilder.RecordBuilder.Import";
 
   /**
@@ -135,9 +126,6 @@ final class ImportPrism implements BuilderPrism {
     }
     _value = getArrayValues("value", TypeMirror.class);
     _getters = getValue("getters", Boolean.class);
-    _enforceNullSafety = getValue("enforceNullSafety", Boolean.class);
-    _nullableAnnotation = getValue("nullableAnnotation", TypeMirror.class);
-    _builderInterfaces = getArrayValues("builderInterfaces", TypeMirror.class);
     this.values = new Values(memberValues);
     this.mirror = mirror;
     this.isValid = valid;
@@ -160,42 +148,8 @@ final class ImportPrism implements BuilderPrism {
    * @see io.avaje.recordbuilder.RecordBuilder.Import#getters()
    */
   @Override
-public Boolean getters() {
+  public Boolean getters() {
     return _getters;
-  }
-
-  /**
-   * Returns a Boolean representing the value of the {@code boolean public abstract boolean
-   * enforceNullSafety() } member of the Annotation.
-   *
-   * @see io.avaje.recordbuilder.RecordBuilder.Import#enforceNullSafety()
-   */
-  @Override
-public Boolean enforceNullSafety() {
-    return _enforceNullSafety;
-  }
-
-  /**
-   * Returns a TypeMirror representing the value of the {@code java.lang.Class<? extends
-   * java.lang.annotation.Annotation> public abstract Class<? extends
-   * java.lang.annotation.Annotation> nullableAnnotation() } member of the Annotation.
-   *
-   * @see io.avaje.recordbuilder.RecordBuilder.Import#nullableAnnotation()
-   */
-  @Override
-public TypeMirror nullableAnnotation() {
-    return _nullableAnnotation;
-  }
-
-  /**
-   * Returns a List&lt;TypeMirror&gt; representing the value of the {@code public abstract
-   * Class<?>[] builderInterfaces() } member of the Annotation.
-   *
-   * @see io.avaje.recordbuilder.RecordBuilder.Import#builderInterfaces()
-   */
-  @Override
-public List<TypeMirror> builderInterfaces() {
-    return _builderInterfaces;
   }
 
   /**
