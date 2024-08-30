@@ -27,6 +27,8 @@ final class Utils {
     for (var mirror : UType.parse(e.asType()).annotations()) {
       if (mirror.getAnnotationType().toString().endsWith("Nullable")) {
         return false;
+      } else if (NonNullPrism.isInstance(mirror)) {
+        return true;
       }
     }
 
