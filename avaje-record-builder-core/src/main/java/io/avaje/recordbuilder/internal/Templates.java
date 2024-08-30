@@ -1,166 +1,232 @@
 package io.avaje.recordbuilder.internal;
 
-import java.text.MessageFormat;
+import io.jstach.jstache.JStache;
 
 public class Templates {
   private Templates() {}
 
-  static String classTemplate(
+  @JStache(
+      template =
+          """
+      {{packageName}}
+
+      {{imports}}
+
+      /** Builder class for {@link {{shortName}} } */
+      @Generated("avaje-record-builder")
+      public class {{shortName}}Builder{{fullTypeParams}} {
+
+      {{fields}}
+        private {{shortName}}Builder() {}
+             {{constructor}}
+        /**
+         * Return a new builder with all fields set to default Java values
+         */
+        public static{{fullTypeParamsTransformed}}{{shortName}}Builder{{typeParams}} builder() {
+          return new {{shortName}}Builder{{typeParams}}();
+        }
+
+        /**
+         * Return a new builder with all fields set to the values taken from the given record instance
+         */
+        public static{{fullTypeParamsTransformed}}{{shortName}}Builder{{typeParams}} builder({{shortName}}{{typeParams}} from) {
+          return new {{shortName}}Builder{{typeParams}}({{builderFrom}});
+        }
+
+        /**
+         * Return a new {{shortName}} instance with all fields set to the current values in this builder
+         */
+         public {{shortName}}{{typeParams}} build() {
+           return new {{shortName}}{{typeParams}}({{build}});
+         }
+
+         private static <T> T requireNonNull(@Nullable T obj, String fieldName) {
+           if (obj == null) {
+             throw new IllegalStateException(
+                 \"{{shortName}}Builder expected a value for property %s, but was null.\".formatted(fieldName));
+           }
+           return obj;
+         }
+      """)
+  public record ClassTemplate(
       String packageName,
       String imports,
       String shortName,
       String fields,
       String constructor,
-      String constructorBody,
       String builderFrom,
       String build,
       String fullTypeParams,
+      String fullTypeParamsTransformed,
       String typeParams) {
-
-    return MessageFormat.format(
-        """
-		   {0}
-
-		   {1}
-
-		   /** Builder class for '{'@link {2}'}' */
-		   @Generated("avaje-record-builder")
-		   public class {2}Builder{8} '{'
-
-		   {3}
-
-		     private {2}Builder() '{'
-		     '}'
-		   """
-            + constructor(constructor)
-            + """
-
-		     /**
-		      * Return a new builder with all fields set to default Java values
-		      */
-		     public static{9}{2}Builder{10} builder() '{'
-		       return new {2}Builder{10}();
-		     '}'
-
-		     /**
-		      * Return a new builder with all fields set to the values taken from the given record instance
-		      */
-		     public static{9}{2}Builder{10} builder({2}{10} from) '{'
-		       return new {2}Builder{10}({6});
-		     '}'
-
-		     /**
-		      * Return a new {2} instance with all fields set to the current values in this builder
-		      */
-		     public {2}{10} build() '{'
-		       return new {2}{10}({7});
-		     '}'
-
-		     private static <T> T requireNonNull(@Nullable T obj, String fieldName) '{'
-		       if (obj == null) '{'
-		         throw new IllegalStateException(
-		             \"{2}Builder expected a value for property %s, but was null.\".formatted(fieldName));
-		       '}'
-		       return obj;
-		     '}'
-
-		   """,
-        packageName.isBlank() ? "" : "package " + packageName + ";",
-        imports,
-        shortName,
-        fields,
-        constructor,
-        constructorBody,
-        builderFrom,
-        build,
-        fullTypeParams,
-        fullTypeParams.transform(s -> s.isEmpty() ? " " : " " + s + " "),
-        typeParams);
-  }
-
-  private static String constructor(String constructor) {
-
-    return constructor.isBlank()
-        ? ""
-        : """
-
-		     private {2}Builder({4}) '{'
-		       {5}
-		     '}'
-		   """;
-  }
-
-  static String methodSetter(
-      CharSequence componentName, String type, String shortName, String typeParams) {
-
-    return MessageFormat.format(
-        """
-
-		     /** Set a new value for '{'@code {0}'}'. */
-		     public {2}Builder{3} {0}({1} {0}) '{'
-		       this.{0} = {0};
-		       return this;
-		     '}'
-		   """,
-        componentName, type, shortName.replace(".", "$"), typeParams);
-  }
-
-  static String methodGetter(CharSequence componentName, UType utype, String shortName) {
-
-    var typeName = utype.shortWithoutAnnotations();
-    var mainType = ProcessorUtils.shortType(utype.mainType());
-    var index = mainType.lastIndexOf(".");
-    var isNested = index != -1;
-    if (isNested) {
-      typeName = new StringBuilder(typeName).insert(index + 1, "@Nullable ").toString();
+    String render() {
+      return ClassTemplateRenderer.of().execute(this);
     }
 
-    return MessageFormat.format(
-        """
+    static String classTemplate(
+        String packageName,
+        String imports,
+        String shortName,
+        String fields,
+        String constructorArgs,
+        String constructorBody,
+        String builderFrom,
+        String build,
+        String fullTypeParams,
+        String typeParams) {
 
-		     /** Return the current value for '{'@code {1}'}'. */
-		     public {0}{2} {1}() '{'
-		       return {1};
-		     '}'
-		   """,
-        isNested || Utils.isNullableType(utype.mainType()) ? "" : "@Nullable ",
-        componentName,
-        typeName,
-        shortName.replace(".", "$"));
+      var constructor =
+          constructorArgs.isBlank()
+              ? ""
+              : new Constructor(shortName, constructorArgs, constructorBody).render();
+      return new ClassTemplate(
+              packageName.isBlank() ? "" : "package " + packageName + ";",
+              imports,
+              shortName,
+              fields,
+              constructor,
+              builderFrom,
+              build,
+              fullTypeParams,
+              fullTypeParams.transform(s -> s.isEmpty() ? " " : " " + s + " "),
+              typeParams)
+          .render();
+    }
   }
 
-  static String methodAdd(
-      String componentName, String type, String shortName, String param0, String typeParams) {
-    String upperCamel = Character.toUpperCase(componentName.charAt(0)) + componentName.substring(1);
-    return MessageFormat.format(
-        """
+  @JStache(
+      template =
+          """
 
-		     /** Add new element to the '{'@code {0}'}' collection. */
-		     public {2}Builder{5} add{3}({4} element) '{'
-		       this.{0}.add(element);
-		       return this;
-		     '}'
-		   """,
-        componentName, type, shortName.replace(".", "$"), upperCamel, param0, typeParams);
+             private {{shortName}}Builder({{args}}) {
+               {{constructorBody}}
+             }
+           """)
+  public record Constructor(String shortName, String args, String constructorBody) {
+
+    String render() {
+      return ConstructorRenderer.of().execute(this);
+    }
   }
 
-  static String methodPut(
+  @JStache(
+      template =
+          """
+
+             /** Set a new value for {@code {{componentName}} }. */
+             public {{shortName}}Builder{{typeParams}} {{componentName}}({{type}} {{componentName}}) {
+               this.{{componentName}} = {{componentName}};
+               return this;
+             }
+           """)
+  public record MethodSetter(
+      String componentName, String type, String shortName, String typeParams) {
+
+    static String methodSetter(
+        CharSequence componentName, String type, String shortName, String typeParams) {
+
+      return new MethodSetter(
+              componentName.toString(), type, shortName.replace(".", "$"), typeParams)
+          .render();
+    }
+
+    String render() {
+      return MethodSetterRenderer.of().execute(this);
+    }
+  }
+
+  @JStache(
+      template =
+          """
+
+               /** Return the current value for {@code {{typeName}} }. */
+               public {{nullable}}{{typeName}} {{componentName}}() {
+                 return {{componentName}};
+               }
+             """)
+  public record MethodGetter(
+      String nullable, String componentName, String typeName, String shortName) {
+
+    static String methodGetter(CharSequence componentName, UType utype, String shortName) {
+
+      var typeName = utype.shortWithoutAnnotations();
+      var mainType = ProcessorUtils.shortType(utype.mainType());
+      var index = mainType.lastIndexOf(".");
+      var isNested = index != -1;
+      if (isNested) {
+        typeName = new StringBuilder(typeName).insert(index + 1, "@Nullable ").toString();
+      }
+
+      return new MethodGetter(
+              isNested || Utils.isNullableType(utype.mainType()) ? "" : "@Nullable ",
+              componentName.toString(),
+              typeName,
+              shortName.replace(".", "$"))
+          .render();
+    }
+
+    String render() {
+      return MethodGetterRenderer.of().execute(this);
+    }
+  }
+
+  @JStache(
+      template =
+          """
+
+             /** Add new element to the {@code {{componentName}} } collection. */
+             public {{shortName}}Builder{{typeParams}} add{{upperCamel}}({{param0}} element) {
+               this.{{componentName}}.add(element);
+               return this;
+             }
+           """)
+  public record MethodAdd(
+      String componentName, String shortName, String upperCamel, String param0, String typeParams) {
+    static String methodAdd(
+        String componentName, String type, String shortName, String param0, String typeParams) {
+      String upperCamel =
+          Character.toUpperCase(componentName.charAt(0)) + componentName.substring(1);
+
+      return new MethodAdd(
+              componentName, shortName.replace(".", "$"), upperCamel, param0, typeParams)
+          .render();
+    }
+
+    String render() {
+      return MethodAddRenderer.of().execute(this);
+    }
+  }
+
+  @JStache(
+      template =
+          """
+
+             /** Add new key/value pair to the {@code {{componentName}} } map. */
+             public {{shortName}}Builder{{typeParams}} put{{upperCamel}}({{param0}} key, {{param1}} value) {
+               this.{{componentName}}.put(key, value);
+               return this;
+             }
+           """)
+  public record MethodPut(
       String componentName,
-      String type,
       String shortName,
+      String upperCamel,
       String param0,
       String param1,
       String typeParams) {
-    String upperCamel = Character.toUpperCase(componentName.charAt(0)) + componentName.substring(1);
-    return MessageFormat.format(
-        """
 
-		     /** Add new key/value pair to the '{'@code {0}'}' map. */
-		     public {2}Builder{6} put{3}({4} key, {5} value) '{'
-		       this.{0}.put(key, value);
-		       return this;
-		     '}'
-		   """,
-        componentName, type, shortName.replace(".", "$"), upperCamel, param0, param1, typeParams);
+    static String methodPut(
+        String componentName, String shortName, String param0, String param1, String typeParams) {
+      String upperCamel =
+          Character.toUpperCase(componentName.charAt(0)) + componentName.substring(1);
+
+      return new MethodPut(
+              componentName, shortName.replace(".", "$"), upperCamel, param0, param1, typeParams)
+          .render();
+    }
+
+    String render() {
+      return MethodPutRenderer.of().execute(this);
+    }
   }
 }
