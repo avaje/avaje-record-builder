@@ -27,6 +27,8 @@ final class Utils {
     for (var mirror : UType.parse(e.asType()).annotations()) {
       if (mirror.getAnnotationType().toString().endsWith("Nullable")) {
         return false;
+      } else if (NonNullPrism.isInstance(mirror)) {
+        return true;
       }
     }
 
@@ -34,13 +36,12 @@ final class Utils {
   }
 
   private static boolean checkNullMarked(Element e) {
-    var enclosing = e.getEnclosingElement();
-    if (enclosing == null || NullUnmarkedPrism.isPresent(enclosing)) {
+    if (e == null || NullUnmarkedPrism.isPresent(e)) {
       return false;
-    } else if (NullMarkedPrism.isPresent(enclosing)) {
+    } else if (NullMarkedPrism.isPresent(e)) {
       return true;
     }
-    return checkNullMarked(enclosing);
+    return checkNullMarked(e.getEnclosingElement());
   }
 
   public static boolean isNullableType(String type) {
