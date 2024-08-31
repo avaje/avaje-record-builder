@@ -1,7 +1,7 @@
+@GeneratePrism(NonNull.class)
 @GeneratePrism(NullMarked.class)
 @GeneratePrism(NullUnmarked.class)
 @GeneratePrism(Nullable.class)
-@GeneratePrism(NonNull.class)
 package io.avaje.recordbuilder.internal;
 
 import org.jspecify.annotations.NonNull;
