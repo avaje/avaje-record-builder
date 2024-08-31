@@ -36,7 +36,6 @@ final class RecordModel {
     this.components = components;
     importTypes.add("io.avaje.recordbuilder.Generated");
     importTypes.add("java.util.function.Consumer");
-    importTypes.add("java.util.function.Consumer");
 
     if (APContext.typeElement(NullablePrism.PRISM_TYPE) != null) {
       importTypes.add(NullablePrism.PRISM_TYPE);

@@ -170,30 +170,6 @@ final class RecordBuilderPrism implements BuilderPrism {
     AnnotationValue getters() {
       return values.get("getters");
     }
-
-    /**
-     * Return the AnnotationValue corresponding to the enforceNullSafety() member of the annotation,
-     * or null when the default value is implied.
-     */
-    AnnotationValue enforceNullSafety() {
-      return values.get("enforceNullSafety");
-    }
-
-    /**
-     * Return the AnnotationValue corresponding to the nullableAnnotation() member of the
-     * annotation, or null when the default value is implied.
-     */
-    AnnotationValue nullableAnnotation() {
-      return values.get("nullableAnnotation");
-    }
-
-    /**
-     * Return the AnnotationValue corresponding to the builderInterfaces() member of the annotation,
-     * or null when the default value is implied.
-     */
-    AnnotationValue builderInterfaces() {
-      return values.get("builderInterfaces");
-    }
   }
 
   private final Map<String, AnnotationValue> defaults = new HashMap<>(10);
