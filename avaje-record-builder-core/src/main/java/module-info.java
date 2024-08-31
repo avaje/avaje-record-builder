@@ -7,7 +7,7 @@ module io.avaje.recordbuilder.core {
   requires java.compiler;
   requires static io.avaje.prism;
   requires static org.jspecify;
-  requires io.jstach.jstache;
+  requires static io.jstach.jstache;
 
   provides javax.annotation.processing.Processor with io.avaje.recordbuilder.internal.RecordProcessor;
 }
