@@ -15,10 +15,12 @@ public class ClassBodyBuilder {
   private ClassBodyBuilder() {}
 
   static String createClassStart(
-      TypeElement type, String typeParams, boolean isImported, String packageName) {
+      TypeElement type,
+      String typeParams,
+      boolean isImported,
+      String packageName) {
 
     final var components = type.getRecordComponents();
-
     final var shortName = type.getSimpleName().toString();
     if (type.getEnclosingElement() instanceof TypeElement) {
       isImported = true;
@@ -85,7 +87,18 @@ public class ClassBodyBuilder {
         .collect(joining(", "));
   }
 
-  private static String build(List<? extends RecordComponentElement> components) {
-    return components.stream().map(RecordComponentElement::getSimpleName).collect(joining(", "));
+  private static String build(
+      List<? extends RecordComponentElement> components) {
+
+    return components.stream()
+        .map(
+            element -> {
+              final var simpleName = element.getSimpleName();
+              return !Utils.isNullableType(UType.parse(element.asType()).mainType())
+                      && Utils.isNonNullable(element)
+                  ? "requireNonNull(%s, \"%s\")".formatted(simpleName, simpleName)
+                  : simpleName;
+            })
+        .collect(joining(", "));
   }
 }

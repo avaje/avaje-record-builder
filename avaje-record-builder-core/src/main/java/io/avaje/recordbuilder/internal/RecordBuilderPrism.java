@@ -16,7 +16,7 @@ import javax.lang.model.util.ElementFilter;
  * A Prism representing a {@link io.avaje.recordbuilder.RecordBuilder @RecordBuilder} annotation.
  */
 @Generated("avaje-prism-generator")
-final class RecordBuilderPrism {
+final class RecordBuilderPrism implements BuilderPrism {
   /** store prism value of getters */
   private final Boolean _getters;
 
@@ -68,7 +68,7 @@ final class RecordBuilderPrism {
   /**
    * Return a Optional representing a nullable {@link
    * io.avaje.recordbuilder.RecordBuilder @RecordBuilder} annotation on the given element. similar
-   * to {@link element.getAnnotation(io.avaje.recordbuilder.RecordBuilder.class)} except that an
+   * to {@code element.getAnnotation(io.avaje.recordbuilder.RecordBuilder.class)} except that an
    * Optional of this class rather than an instance of {@link io.avaje.recordbuilder.RecordBuilder}
    * is returned.
    *
@@ -96,7 +96,7 @@ final class RecordBuilderPrism {
 
   /**
    * Return an Optional representing a nullable {@link RecordBuilderPrism @RecordBuilderPrism} from
-   * an annotation mirror. similar to {@link
+   * an annotation mirror. similar to {@code
    * e.getAnnotation(io.avaje.recordbuilder.RecordBuilder.class)} except that an Optional of this
    * class rather than an instance of {@link io.avaje.recordbuilder.RecordBuilder @RecordBuilder} is
    * returned.
@@ -126,11 +126,12 @@ final class RecordBuilderPrism {
   }
 
   /**
-   * Returns a Boolean representing the value of the {@code boolean getters()} member of the
-   * Annotation.
+   * Returns a Boolean representing the value of the {@code boolean public abstract boolean
+   * getters() } member of the Annotation.
    *
    * @see io.avaje.recordbuilder.RecordBuilder#getters()
    */
+  @Override
   public Boolean getters() {
     return _getters;
   }
@@ -148,6 +149,7 @@ final class RecordBuilderPrism {
    * to support using Messager.
    */
   final AnnotationMirror mirror;
+
   /**
    * A class whose members corespond to those of {@link
    * io.avaje.recordbuilder.RecordBuilder @RecordBuilder} but which each return the AnnotationValue
@@ -160,12 +162,37 @@ final class RecordBuilderPrism {
     private Values(Map<String, AnnotationValue> values) {
       this.values = values;
     }
+
     /**
      * Return the AnnotationValue corresponding to the getters() member of the annotation, or null
      * when the default value is implied.
      */
     AnnotationValue getters() {
       return values.get("getters");
+    }
+
+    /**
+     * Return the AnnotationValue corresponding to the enforceNullSafety() member of the annotation,
+     * or null when the default value is implied.
+     */
+    AnnotationValue enforceNullSafety() {
+      return values.get("enforceNullSafety");
+    }
+
+    /**
+     * Return the AnnotationValue corresponding to the nullableAnnotation() member of the
+     * annotation, or null when the default value is implied.
+     */
+    AnnotationValue nullableAnnotation() {
+      return values.get("nullableAnnotation");
+    }
+
+    /**
+     * Return the AnnotationValue corresponding to the builderInterfaces() member of the annotation,
+     * or null when the default value is implied.
+     */
+    AnnotationValue builderInterfaces() {
+      return values.get("builderInterfaces");
     }
   }
 

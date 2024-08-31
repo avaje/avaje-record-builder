@@ -26,6 +26,7 @@ public class Templates {
 		   /** Builder class for '{'@link {2}'}' */
 		   @Generated("avaje-record-builder")
 		   public class {2}Builder{8} '{'
+
 		   {3}
 
 		     private {2}Builder() '{'
@@ -38,22 +39,31 @@ public class Templates {
 		      * Return a new builder with all fields set to default Java values
 		      */
 		     public static{9}{2}Builder{10} builder() '{'
-		         return new {2}Builder{10}();
+		       return new {2}Builder{10}();
 		     '}'
 
 		     /**
 		      * Return a new builder with all fields set to the values taken from the given record instance
 		      */
 		     public static{9}{2}Builder{10} builder({2}{10} from) '{'
-		         return new {2}Builder{10}({6});
+		       return new {2}Builder{10}({6});
 		     '}'
 
 		     /**
 		      * Return a new {2} instance with all fields set to the current values in this builder
 		      */
 		     public {2}{10} build() '{'
-		         return new {2}{10}({7});
+		       return new {2}{10}({7});
 		     '}'
+
+		     private static <T> T requireNonNull(@Nullable T obj, String fieldName) '{'
+		       if (obj == null) '{'
+		         throw new IllegalStateException(
+		             \"{2}Builder expected a value for property %s, but was null.\".formatted(fieldName));
+		       '}'
+		       return obj;
+		     '}'
+
 		   """,
         packageName.isBlank() ? "" : "package " + packageName + ";",
         imports,
@@ -82,28 +92,41 @@ public class Templates {
 
   static String methodSetter(
       CharSequence componentName, String type, String shortName, String typeParams) {
+
     return MessageFormat.format(
         """
 
 		     /** Set a new value for '{'@code {0}'}'. */
 		     public {2}Builder{3} {0}({1} {0}) '{'
-		         this.{0} = {0};
-		         return this;
+		       this.{0} = {0};
+		       return this;
 		     '}'
 		   """,
         componentName, type, shortName.replace(".", "$"), typeParams);
   }
 
-  static String methodGetter(CharSequence componentName, String type, String shortName) {
+  static String methodGetter(CharSequence componentName, UType utype, String shortName) {
+
+    var typeName = utype.shortWithoutAnnotations();
+    var mainType = ProcessorUtils.shortType(utype.mainType());
+    var index = mainType.lastIndexOf(".");
+    var isNested = index != -1;
+    if (isNested) {
+      typeName = new StringBuilder(typeName).insert(index + 1, "@Nullable ").toString();
+    }
+
     return MessageFormat.format(
         """
 
-		     /** Return the current value for '{'@code {0}'}'. */
-		     public {1} {0}() '{'
-		         return {0};
+		     /** Return the current value for '{'@code {1}'}'. */
+		     public {0}{2} {1}() '{'
+		       return {1};
 		     '}'
 		   """,
-        componentName, type, shortName.replace(".", "$"));
+        isNested || Utils.isNullableType(utype.mainType()) ? "" : "@Nullable ",
+        componentName,
+        typeName,
+        shortName.replace(".", "$"));
   }
 
   static String methodAdd(
@@ -114,8 +137,8 @@ public class Templates {
 
 		     /** Add new element to the '{'@code {0}'}' collection. */
 		     public {2}Builder{5} add{3}({4} element) '{'
-		         this.{0}.add(element);
-		         return this;
+		       this.{0}.add(element);
+		       return this;
 		     '}'
 		   """,
         componentName, type, shortName.replace(".", "$"), upperCamel, param0, typeParams);
@@ -134,8 +157,8 @@ public class Templates {
 
 		     /** Add new key/value pair to the '{'@code {0}'}' map. */
 		     public {2}Builder{6} put{3}({4} key, {5} value) '{'
-		         this.{0}.put(key, value);
-		         return this;
+		       this.{0}.put(key, value);
+		       return this;
 		     '}'
 		   """,
         componentName, type, shortName.replace(".", "$"), upperCamel, param0, param1, typeParams);

@@ -19,9 +19,12 @@ import javax.lang.model.util.ElementFilter;
  * A Prism representing a {@link io.avaje.recordbuilder.RecordBuilder.Import @Import} annotation.
  */
 @Generated("avaje-prism-generator")
-final class ImportPrism {
+final class ImportPrism implements BuilderPrism {
   /** store prism value of value */
   private final List<TypeMirror> _value;
+
+  /** store prism value of getters */
+  private final Boolean _getters;
 
   public static final String PRISM_TYPE = "io.avaje.recordbuilder.RecordBuilder.Import";
 
@@ -71,7 +74,7 @@ final class ImportPrism {
   /**
    * Return a Optional representing a nullable {@link
    * io.avaje.recordbuilder.RecordBuilder.Import @Import} annotation on the given element. similar
-   * to {@link element.getAnnotation(io.avaje.recordbuilder.RecordBuilder.Import.class)} except that
+   * to {@code element.getAnnotation(io.avaje.recordbuilder.RecordBuilder.Import.class)} except that
    * an Optional of this class rather than an instance of {@link
    * io.avaje.recordbuilder.RecordBuilder.Import} is returned.
    *
@@ -99,7 +102,7 @@ final class ImportPrism {
 
   /**
    * Return an Optional representing a nullable {@link ImportPrism @ImportPrism} from an annotation
-   * mirror. similar to {@link e.getAnnotation(io.avaje.recordbuilder.RecordBuilder.Import.class)}
+   * mirror. similar to {@code e.getAnnotation(io.avaje.recordbuilder.RecordBuilder.Import.class)}
    * except that an Optional of this class rather than an instance of {@link
    * io.avaje.recordbuilder.RecordBuilder.Import @Import} is returned.
    *
@@ -122,19 +125,31 @@ final class ImportPrism {
       defaults.put(member.getSimpleName().toString(), member.getDefaultValue());
     }
     _value = getArrayValues("value", TypeMirror.class);
+    _getters = getValue("getters", Boolean.class);
     this.values = new Values(memberValues);
     this.mirror = mirror;
     this.isValid = valid;
   }
 
   /**
-   * Returns a List&lt;TypeMirror&gt; representing the value of the {@code value()} member of the
-   * Annotation.
+   * Returns a List&lt;TypeMirror&gt; representing the value of the {@code public abstract Class<?
+   * extends java.lang.Record>[] value() } member of the Annotation.
    *
    * @see io.avaje.recordbuilder.RecordBuilder.Import#value()
    */
   public List<TypeMirror> value() {
     return _value;
+  }
+
+  /**
+   * Returns a Boolean representing the value of the {@code boolean public abstract boolean
+   * getters() } member of the Annotation.
+   *
+   * @see io.avaje.recordbuilder.RecordBuilder.Import#getters()
+   */
+  @Override
+  public Boolean getters() {
+    return _getters;
   }
 
   /**
@@ -150,6 +165,7 @@ final class ImportPrism {
    * to support using Messager.
    */
   final AnnotationMirror mirror;
+
   /**
    * A class whose members corespond to those of {@link
    * io.avaje.recordbuilder.RecordBuilder.Import @Import} but which each return the AnnotationValue
@@ -162,6 +178,7 @@ final class ImportPrism {
     private Values(Map<String, AnnotationValue> values) {
       this.values = values;
     }
+
     /**
      * Return the AnnotationValue corresponding to the value() member of the annotation, or null
      * when the default value is implied.
@@ -169,11 +186,25 @@ final class ImportPrism {
     AnnotationValue value() {
       return values.get("value");
     }
+
+    /**
+     * Return the AnnotationValue corresponding to the getters() member of the annotation, or null
+     * when the default value is implied.
+     */
+    AnnotationValue getters() {
+      return values.get("getters");
+    }
   }
 
   private final Map<String, AnnotationValue> defaults = new HashMap<>(10);
   private final Map<String, AnnotationValue> memberValues = new HashMap<>(10);
   private boolean valid = true;
+
+  private <T> T getValue(String name, Class<T> clazz) {
+    final T result = ImportPrism.getValue(memberValues, defaults, name, clazz);
+    if (result == null) valid = false;
+    return result;
+  }
 
   private <T> List<T> getArrayValues(String name, final Class<T> clazz) {
     final List<T> result = ImportPrism.getArrayValues(memberValues, defaults, name, clazz);
@@ -190,6 +221,20 @@ final class ImportPrism {
     return null;
   }
 
+  private static <T> T getValue(
+      Map<String, AnnotationValue> memberValues,
+      Map<String, AnnotationValue> defaults,
+      String name,
+      Class<T> clazz) {
+    AnnotationValue av = memberValues.get(name);
+    if (av == null) av = defaults.get(name);
+    if (av == null) {
+      return null;
+    }
+    if (clazz.isInstance(av.getValue())) return clazz.cast(av.getValue());
+    return null;
+  }
+
   private static <T> List<T> getArrayValues(
       Map<String, AnnotationValue> memberValues,
       Map<String, AnnotationValue> defaults,
@@ -197,18 +242,22 @@ final class ImportPrism {
       final Class<T> clazz) {
     AnnotationValue av = memberValues.get(name);
     if (av == null) av = defaults.get(name);
-    if ((av == null) || !(av.getValue() instanceof List)) {
+    if (av == null) {
       return List.of();
     }
-    final List<T> result = new ArrayList<>();
-    for (final var v : getValueAsList(av)) {
-      if (clazz.isInstance(v.getValue())) {
-        result.add(clazz.cast(v.getValue()));
-      } else {
-        return List.of();
+    if (av.getValue() instanceof List) {
+      final List<T> result = new ArrayList<>();
+      for (final var v : getValueAsList(av)) {
+        if (clazz.isInstance(v.getValue())) {
+          result.add(clazz.cast(v.getValue()));
+        } else {
+          return List.of();
+        }
       }
+      return result;
+    } else {
+      return List.of();
     }
-    return result;
   }
 
   @SuppressWarnings("unchecked")

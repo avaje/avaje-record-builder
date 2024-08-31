@@ -36,6 +36,11 @@ final class RecordModel {
     this.components = components;
     importTypes.add("io.avaje.recordbuilder.Generated");
     importTypes.add("java.util.function.Consumer");
+    importTypes.add("java.util.function.Consumer");
+
+    if (APContext.typeElement(NullablePrism.PRISM_TYPE) != null) {
+      importTypes.add(NullablePrism.PRISM_TYPE);
+    }
     var imports = utype.importTypes();
     imports.remove(type.getQualifiedName().toString());
     importTypes.addAll(imports);
@@ -50,12 +55,16 @@ final class RecordModel {
         .forEach(importTypes::addAll);
   }
 
+  void addImport(String imports) {
+    importTypes.add(imports);
+  }
+
   String fields() {
     final var builder = new StringBuilder();
     for (final var element : components) {
       final var uType = UType.parse(element.asType());
 
-      String defaultVal = "";
+      String defaultVal = " = null";
       final DefaultValuePrism initPrism = DefaultValuePrism.getInstanceOn(element);
       if (initPrism != null) {
         defaultVal = " = " + initPrism.value();
@@ -80,14 +89,23 @@ final class RecordModel {
           }
         }
       }
+      var typename =
+          uType
+              .shortType()
+              .transform(ProcessorUtils::trimAnnotations)
+              .transform(this::shortRawType);
+      var mainType = ProcessorUtils.shortType(uType.mainType());
+      var index = mainType.lastIndexOf(".");
+      var isNested = index != -1;
+      if (isNested) {
+        typename = new StringBuilder(typename).insert(index + 1, "@Nullable ").toString();
+      }
 
       builder.append(
-          "  private %s %s%s;\n"
+          "  private %s%s %s%s;\n"
               .formatted(
-                  uType
-                      .shortType()
-                      .transform(ProcessorUtils::trimAnnotations)
-                      .transform(this::shortRawType),
+                  isNested || Utils.isNullableType(uType.mainType()) ? "" : "@Nullable ",
+                  typename,
                   element.getSimpleName(),
                   defaultVal));
     }
