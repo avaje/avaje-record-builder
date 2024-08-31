@@ -5,10 +5,6 @@ import static io.avaje.recordbuilder.internal.APContext.elements;
 import static io.avaje.recordbuilder.internal.APContext.getModuleInfoReader;
 import static io.avaje.recordbuilder.internal.APContext.logError;
 import static io.avaje.recordbuilder.internal.APContext.typeElement;
-import static io.avaje.recordbuilder.internal.Templates.methodAdd;
-import static io.avaje.recordbuilder.internal.Templates.methodGetter;
-import static io.avaje.recordbuilder.internal.Templates.methodPut;
-import static io.avaje.recordbuilder.internal.Templates.methodSetter;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
@@ -30,6 +26,10 @@ import javax.lang.model.util.ElementFilter;
 
 import io.avaje.prism.GenerateAPContext;
 import io.avaje.prism.GenerateUtils;
+import io.avaje.recordbuilder.internal.Templates.MethodAdd;
+import io.avaje.recordbuilder.internal.Templates.MethodGetter;
+import io.avaje.recordbuilder.internal.Templates.MethodPut;
+import io.avaje.recordbuilder.internal.Templates.MethodSetter;
 
 @GenerateUtils
 @GenerateAPContext
@@ -119,8 +119,7 @@ public final class RecordProcessor extends AbstractProcessor {
               .map(Object::toString)
               .collect(joining(", "))
               .transform(s -> s.isEmpty() ? s : "<" + s + ">");
-      writer.append(
-          ClassBodyBuilder.createClassStart(type, typeParams, isImported, packageName));
+      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported, packageName));
 
       methods(writer, typeParams, shortName, components, prism);
     } catch (final IOException e) {
@@ -138,9 +137,11 @@ public final class RecordProcessor extends AbstractProcessor {
 
     for (final var element : components) {
       final var type = UType.parse(element.asType());
-      writer.append(methodSetter(element.getSimpleName(), type.shortType(), shortName, typeParams));
+      writer.append(
+          MethodSetter.methodSetter(
+              element.getSimpleName(), type.shortType(), shortName, typeParams));
       if (getters) {
-        writer.append(methodGetter(element.getSimpleName(), type, shortName));
+        writer.append(MethodGetter.methodGetter(element.getSimpleName(), type, shortName));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {
@@ -148,7 +149,7 @@ public final class RecordProcessor extends AbstractProcessor {
         String param0ShortType = type.param0().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
-            methodAdd(
+            MethodAdd.methodAdd(
                 simpleName.toString(), type.shortType(), shortName, param0ShortType, typeParams));
       }
 
@@ -158,13 +159,8 @@ public final class RecordProcessor extends AbstractProcessor {
         String param1ShortType = type.param1().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
-            methodPut(
-                simpleName.toString(),
-                type.shortType().transform(ProcessorUtils::trimAnnotations),
-                shortName,
-                param0ShortType,
-                param1ShortType,
-                typeParams));
+            MethodPut.methodPut(
+                simpleName.toString(), shortName, param0ShortType, param1ShortType, typeParams));
       }
     }
     writer.append("}");

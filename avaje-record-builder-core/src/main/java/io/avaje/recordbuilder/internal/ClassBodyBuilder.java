@@ -1,6 +1,5 @@
 package io.avaje.recordbuilder.internal;
 
-import static io.avaje.recordbuilder.internal.Templates.classTemplate;
 import static java.util.stream.Collectors.joining;
 
 import java.text.MessageFormat;
@@ -9,6 +8,8 @@ import java.util.Optional;
 
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
+
+import io.avaje.recordbuilder.internal.Templates.ClassTemplate;
 
 public class ClassBodyBuilder {
 
@@ -51,7 +52,7 @@ public class ClassBodyBuilder {
         builderFrom(components).transform(s -> numberOfComponents > 5 ? "\n        " + s : s);
     final String build =
         build(components).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
-    return classTemplate(
+    return ClassTemplate.classTemplate(
         packageName,
         imports,
         shortName,

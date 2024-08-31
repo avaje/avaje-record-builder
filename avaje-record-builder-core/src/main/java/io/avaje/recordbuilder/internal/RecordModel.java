@@ -97,13 +97,22 @@ final class RecordModel {
       var index = mainType.lastIndexOf(".");
       var isNested = index != -1;
       if (isNested) {
-        typename = new StringBuilder(typename).insert(index + 1, "@Nullable ").toString();
+        typename =
+            new StringBuilder(typename)
+                .insert(
+                    index + 1,
+                    APContext.typeElement(NullablePrism.PRISM_TYPE) != null ? "@Nullable " : "")
+                .toString();
       }
 
       builder.append(
           "  private %s%s %s%s;\n"
               .formatted(
-                  isNested || Utils.isNullableType(uType.mainType()) ? "" : "@Nullable ",
+                  isNested
+                          || APContext.typeElement(NullablePrism.PRISM_TYPE) == null
+                          || Utils.isNullableType(uType.mainType())
+                      ? ""
+                      : "@Nullable ",
                   typename,
                   element.getSimpleName(),
                   defaultVal));
