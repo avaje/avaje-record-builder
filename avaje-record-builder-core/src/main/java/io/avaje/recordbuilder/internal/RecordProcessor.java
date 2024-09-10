@@ -107,12 +107,12 @@ public final class RecordProcessor extends AbstractProcessor {
         unnamed
             ? ""
             : packageElement.getQualifiedName().toString() + (isImported ? ".builder" : "");
-    final var shortName = type.getSimpleName().toString();
-
+    var builderName =
+        ProcessorUtils.shortType(UType.parse(type.asType()).mainType()).replace(".", "$")
+            + "Builder";
     try (var writer =
         new Append(
-            createSourceFile((unnamed ? "" : packageName + ".") + shortName + "Builder")
-                .openWriter())) {
+            createSourceFile((unnamed ? "" : packageName + ".") + builderName).openWriter())) {
 
       var typeParams =
           type.getTypeParameters().stream()
@@ -121,7 +121,7 @@ public final class RecordProcessor extends AbstractProcessor {
               .transform(s -> s.isEmpty() ? s : "<" + s + ">");
       writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported, packageName));
 
-      methods(writer, typeParams, shortName, components, prism);
+      methods(writer, typeParams, builderName, components, prism);
     } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -130,18 +130,20 @@ public final class RecordProcessor extends AbstractProcessor {
   private void methods(
       Append writer,
       String typeParams,
-      String shortName,
+      String builderName,
       List<? extends RecordComponentElement> components,
       BuilderPrism prism) {
     boolean getters = prism.getters();
 
     for (final var element : components) {
+
       final var type = UType.parse(element.asType());
+
       writer.append(
           MethodSetter.methodSetter(
-              element.getSimpleName(), type.shortType(), shortName, typeParams));
+              element.getSimpleName(), type.shortType(), builderName, typeParams));
       if (getters) {
-        writer.append(MethodGetter.methodGetter(element.getSimpleName(), type, shortName));
+        writer.append(MethodGetter.methodGetter(element.getSimpleName(), type, builderName));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {
@@ -150,7 +152,7 @@ public final class RecordProcessor extends AbstractProcessor {
         Name simpleName = element.getSimpleName();
         writer.append(
             MethodAdd.methodAdd(
-                simpleName.toString(), type.shortType(), shortName, param0ShortType, typeParams));
+                simpleName.toString(), builderName, param0ShortType, typeParams));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Map")) {
@@ -160,7 +162,7 @@ public final class RecordProcessor extends AbstractProcessor {
         Name simpleName = element.getSimpleName();
         writer.append(
             MethodPut.methodPut(
-                simpleName.toString(), shortName, param0ShortType, param1ShortType, typeParams));
+                simpleName.toString(), builderName, param0ShortType, param1ShortType, typeParams));
       }
     }
     writer.append("}");

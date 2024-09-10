@@ -21,12 +21,13 @@ public class ClassBodyBuilder {
       boolean isImported,
       String packageName) {
 
-    final var components = type.getRecordComponents();
-    final var shortName = type.getSimpleName().toString();
     if (type.getEnclosingElement() instanceof TypeElement) {
       isImported = true;
     }
+
     var utype = UType.parse(type.asType());
+    final var components = type.getRecordComponents();
+
     var fulltypeParams =
         utype.componentTypes().stream()
             .map(
@@ -52,9 +53,15 @@ public class ClassBodyBuilder {
         builderFrom(components).transform(s -> numberOfComponents > 5 ? "\n        " + s : s);
     final String build =
         build(components).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
+
+    final var builderName =
+        ProcessorUtils.shortType(utype.mainType()).replace(".", "$") + "Builder";
+
+    final var shortName = type.getSimpleName().toString();
     return ClassTemplate.classTemplate(
         packageName,
         imports,
+        builderName,
         shortName,
         fieldString,
         constructorParams,
