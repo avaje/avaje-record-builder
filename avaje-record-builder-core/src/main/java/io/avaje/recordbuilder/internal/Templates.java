@@ -14,23 +14,23 @@ public class Templates {
 
       /** Builder class for {@link {{shortName}} } */
       @Generated("avaje-record-builder")
-      public class {{shortName}}Builder{{fullTypeParams}} {
+      public class {{builderName}}{{fullTypeParams}} {
 
       {{fields}}
-        private {{shortName}}Builder() {}
+        private {{builderName}}() {}
              {{constructor}}
         /**
          * Return a new builder with all fields set to default Java values
          */
-        public static{{fullTypeParamsTransformed}}{{shortName}}Builder{{typeParams}} builder() {
-          return new {{shortName}}Builder{{typeParams}}();
+        public static{{fullTypeParamsTransformed}}{{builderName}}{{typeParams}} builder() {
+          return new {{builderName}}{{typeParams}}();
         }
 
         /**
          * Return a new builder with all fields set to the values taken from the given record instance
          */
-        public static{{fullTypeParamsTransformed}}{{shortName}}Builder{{typeParams}} builder({{shortName}}{{typeParams}} from) {
-          return new {{shortName}}Builder{{typeParams}}({{builderFrom}});
+        public static{{fullTypeParamsTransformed}}{{builderName}}{{typeParams}} builder({{shortName}}{{typeParams}} from) {
+          return new {{builderName}}{{typeParams}}({{builderFrom}});
         }
 
         /**
@@ -43,7 +43,7 @@ public class Templates {
          private static <T> T requireNonNull(@Nullable T obj, String fieldName) {
            if (obj == null) {
              throw new IllegalStateException(
-                 \"{{shortName}}Builder expected a value for property %s, but was null.\".formatted(fieldName));
+                 \"{{builderName}} expected a value for property %s, but was null.\".formatted(fieldName));
            }
            return obj;
          }
@@ -51,6 +51,7 @@ public class Templates {
   public record ClassTemplate(
       String packageName,
       String imports,
+      String builderName,
       String shortName,
       String fields,
       String constructor,
@@ -66,6 +67,7 @@ public class Templates {
     static String classTemplate(
         String packageName,
         String imports,
+        String builderName,
         String shortName,
         String fields,
         String constructorArgs,
@@ -78,10 +80,11 @@ public class Templates {
       var constructor =
           constructorArgs.isBlank()
               ? ""
-              : new Constructor(shortName, constructorArgs, constructorBody).render();
+              : new Constructor(builderName, constructorArgs, constructorBody).render();
       return new ClassTemplate(
               packageName.isBlank() ? "" : "package " + packageName + ";",
               imports,
+              builderName,
               shortName,
               fields,
               constructor,
@@ -98,11 +101,11 @@ public class Templates {
       template =
           """
 
-             private {{shortName}}Builder({{args}}) {
+             private {{builderName}}({{args}}) {
                {{constructorBody}}
              }
            """)
-  public record Constructor(String shortName, String args, String constructorBody) {
+  public record Constructor(String builderName, String args, String constructorBody) {
 
     String render() {
       return ConstructorRenderer.of().execute(this);
@@ -114,19 +117,19 @@ public class Templates {
           """
 
              /** Set a new value for {@code {{componentName}} }. */
-             public {{shortName}}Builder{{typeParams}} {{componentName}}({{type}} {{componentName}}) {
+             public {{builderName}}{{typeParams}} {{componentName}}({{type}} {{componentName}}) {
                this.{{componentName}} = {{componentName}};
                return this;
              }
            """)
   public record MethodSetter(
-      String componentName, String type, String shortName, String typeParams) {
+      String componentName, String type, String builderName, String typeParams) {
 
     static String methodSetter(
-        CharSequence componentName, String type, String shortName, String typeParams) {
+        CharSequence componentName, String type, String builderName, String typeParams) {
 
       return new MethodSetter(
-              componentName.toString(), type, shortName.replace(".", "$"), typeParams)
+              componentName.toString(), type, builderName, typeParams)
           .render();
     }
 
@@ -175,20 +178,20 @@ public class Templates {
           """
 
              /** Add new element to the {@code {{componentName}} } collection. */
-             public {{shortName}}Builder{{typeParams}} add{{upperCamel}}({{param0}} element) {
+             public {{builderName}}{{typeParams}} add{{upperCamel}}({{param0}} element) {
                this.{{componentName}}.add(element);
                return this;
              }
            """)
   public record MethodAdd(
-      String componentName, String shortName, String upperCamel, String param0, String typeParams) {
+      String componentName, String builderName, String upperCamel, String param0, String typeParams) {
     static String methodAdd(
-        String componentName, String type, String shortName, String param0, String typeParams) {
+        String componentName, String builderName, String param0, String typeParams) {
       String upperCamel =
           Character.toUpperCase(componentName.charAt(0)) + componentName.substring(1);
 
       return new MethodAdd(
-              componentName, shortName.replace(".", "$"), upperCamel, param0, typeParams)
+              componentName, builderName, upperCamel, param0, typeParams)
           .render();
     }
 
@@ -202,26 +205,26 @@ public class Templates {
           """
 
              /** Add new key/value pair to the {@code {{componentName}} } map. */
-             public {{shortName}}Builder{{typeParams}} put{{upperCamel}}({{param0}} key, {{param1}} value) {
+             public {{builderName}}{{typeParams}} put{{upperCamel}}({{param0}} key, {{param1}} value) {
                this.{{componentName}}.put(key, value);
                return this;
              }
            """)
   public record MethodPut(
       String componentName,
-      String shortName,
+      String builderName,
       String upperCamel,
       String param0,
       String param1,
       String typeParams) {
 
     static String methodPut(
-        String componentName, String shortName, String param0, String param1, String typeParams) {
+        String componentName, String builderName, String param0, String param1, String typeParams) {
       String upperCamel =
           Character.toUpperCase(componentName.charAt(0)) + componentName.substring(1);
 
       return new MethodPut(
-              componentName, shortName.replace(".", "$"), upperCamel, param0, param1, typeParams)
+              componentName, builderName, upperCamel, param0, param1, typeParams)
           .render();
     }
 
