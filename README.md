@@ -10,7 +10,10 @@ Uses Annotation processing to generate builders for records.
 - We can choose the default value of a record component in the generated builder
 - Support for generating Checker/NullAway compliant builders for static null analysis.
 ## Usage
+
 ### 1. Add dependency:
+
+#### Maven:
 ```xml
 <dependency>
   <groupId>io.avaje</groupId>
@@ -19,6 +22,12 @@ Uses Annotation processing to generate builders for records.
   <optional>true</optional>
   <scope>provided</scope>
 </dependency>
+```
+
+#### Gradle:
+```kotlin
+compileOnly("io.avaje:avaje-record-builder:${recordVersion}")
+annotationProcessor("io.avaje:avaje-record-builder:${recordVersion}")
 ```
 
 Add the annotation module as a static dependency when working with Java modules.
