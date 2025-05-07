@@ -103,9 +103,10 @@
               </annotationProcessors>
               <compilerArgs>
                 <arg>-XDcompilePolicy=simple</arg>
-                <arg>  -Xplugin:ErrorProne \
+                <arg>-Xplugin:ErrorProne \
                        -XepOpt:NullAway:AnnotatedPackages=io.avaje.recordbuilder
                 </arg>
+                <arg>--should-stop=ifError=FLOW</arg>
                 <arg>-Xmaxerrs</arg>
                 <arg>10000</arg>
                 <arg>-Xmaxwarns</arg>
