@@ -10,14 +10,17 @@ import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.RecordComponentElement;
@@ -62,9 +65,17 @@ public final class RecordProcessor extends AbstractProcessor {
 
     InitMap.putAll(globalTypeInitializers);
 
-    for (final TypeElement type :
-        ElementFilter.typesIn(
-            roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
+    var elements = roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE));
+
+    var records = new HashSet<>(ElementFilter.typesIn(elements));
+    Stream.concat(
+            ElementFilter.modulesIn(elements).stream()
+                .map(Element::getEnclosedElements)
+                .flatMap(List::stream),
+            ElementFilter.packagesIn(elements).stream())
+        .forEach(e -> findRecordsInPackage(e, records));
+
+    for (final TypeElement type : records) {
       if (type.getKind() != ElementKind.RECORD) {
         logError(type, "Builders can only be generated for record classes");
         continue;
@@ -93,8 +104,31 @@ public final class RecordProcessor extends AbstractProcessor {
     return false;
   }
 
+  private void findRecordsInPackage(Element pkg, Set<TypeElement> records) {
+    for (var enclosedElement : ElementFilter.typesIn(pkg.getEnclosedElements())) {
+      if (enclosedElement.getKind() == ElementKind.RECORD) {
+        records.add(enclosedElement);
+      }
+      findNestedRecords(enclosedElement, records);
+    }
+  }
+
+  private void findNestedRecords(TypeElement type, Set<TypeElement> types) {
+    for (var enclosedElement : ElementFilter.typesIn(type.getEnclosedElements())) {
+      if (enclosedElement.getKind() == ElementKind.RECORD) {
+        types.add(enclosedElement);
+      }
+      findNestedRecords(enclosedElement, types);
+    }
+  }
+
   private void readElement(TypeElement type) {
-    readElement(type, RecordBuilderPrism.getInstanceOn(type));
+    readElement(type, getRecordBuilderPrism(type));
+  }
+
+  private static RecordBuilderPrism getRecordBuilderPrism(Element element) {
+    var prism = RecordBuilderPrism.getInstanceOn(element);
+    return prism != null ? prism : getRecordBuilderPrism(element.getEnclosingElement());
   }
 
   private void readElement(TypeElement type, BuilderPrism prism) {
@@ -151,8 +185,7 @@ public final class RecordProcessor extends AbstractProcessor {
         String param0ShortType = type.param0().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
-            MethodAdd.methodAdd(
-                simpleName.toString(), builderName, param0ShortType, typeParams));
+            MethodAdd.methodAdd(simpleName.toString(), builderName, param0ShortType, typeParams));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Map")) {

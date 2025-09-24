@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 
 /** Generate a builder class for the given record */
 @Documented
-@Target(TYPE)
+@Target({TYPE, PACKAGE, MODULE})
 @Retention(SOURCE)
 public @interface RecordBuilder {
 
