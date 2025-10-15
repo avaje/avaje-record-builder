@@ -56,7 +56,6 @@ public final class RecordProcessor extends AbstractProcessor {
 
   @Override
   public boolean process(Set<? extends TypeElement> tes, RoundEnvironment roundEnv) {
-
     APContext.setProjectModuleElement(tes, roundEnv);
     final var globalTypeInitializers =
         roundEnv.getElementsAnnotatedWith(typeElement(GlobalPrism.PRISM_TYPE)).stream()
@@ -68,11 +67,7 @@ public final class RecordProcessor extends AbstractProcessor {
     var elements = roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE));
 
     var records = new HashSet<>(ElementFilter.typesIn(elements));
-    Stream.concat(
-            ElementFilter.modulesIn(elements).stream()
-                .map(Element::getEnclosedElements)
-                .flatMap(List::stream),
-            ElementFilter.packagesIn(elements).stream())
+    allPackages(elements)
         .forEach(e -> findRecordsInPackage(e, records));
 
     for (final TypeElement type : records) {
@@ -102,6 +97,18 @@ public final class RecordProcessor extends AbstractProcessor {
       APContext.clear();
     }
     return false;
+  }
+
+  private static Stream<? extends Element> allPackages(Set<? extends Element> elements) {
+    return Stream.concat(
+      modulePackages(elements),
+      ElementFilter.packagesIn(elements).stream());
+  }
+
+  private static Stream<? extends Element> modulePackages(Set<? extends Element> elements) {
+    return ElementFilter.modulesIn(elements).stream()
+      .map(Element::getEnclosedElements)
+      .flatMap(List::stream);
   }
 
   private void findRecordsInPackage(Element pkg, Set<TypeElement> records) {
