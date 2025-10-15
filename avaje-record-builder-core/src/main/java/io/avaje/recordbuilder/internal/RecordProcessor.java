@@ -130,16 +130,15 @@ public final class RecordProcessor extends AbstractProcessor {
   }
 
   private void readElement(TypeElement type) {
-    readElement(type, getRecordBuilderPrism(type));
+    readElement(type, findRecordBuilderPrism(type));
   }
 
-  private static RecordBuilderPrism getRecordBuilderPrism(Element element) {
+  private static RecordBuilderPrism findRecordBuilderPrism(Element element) {
     var prism = RecordBuilderPrism.getInstanceOn(element);
-    return prism != null ? prism : getRecordBuilderPrism(element.getEnclosingElement());
+    return prism != null ? prism : findRecordBuilderPrism(element.getEnclosingElement());
   }
 
   private void readElement(TypeElement type, BuilderPrism prism) {
-
     final var components = type.getRecordComponents();
     final var packageElement = elements().getPackageOf(type);
     boolean isImported = prism.imported();
@@ -177,9 +176,7 @@ public final class RecordProcessor extends AbstractProcessor {
     boolean getters = prism.getters();
 
     for (final var element : components) {
-
       final var type = UType.parse(element.asType());
-
       writer.append(
           MethodSetter.methodSetter(
               element.getSimpleName(), type.shortType(), builderName, typeParams));
@@ -188,7 +185,6 @@ public final class RecordProcessor extends AbstractProcessor {
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {
-
         String param0ShortType = type.param0().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
@@ -196,7 +192,6 @@ public final class RecordProcessor extends AbstractProcessor {
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Map")) {
-
         String param0ShortType = type.param0().shortType();
         String param1ShortType = type.param1().shortType();
         Name simpleName = element.getSimpleName();
