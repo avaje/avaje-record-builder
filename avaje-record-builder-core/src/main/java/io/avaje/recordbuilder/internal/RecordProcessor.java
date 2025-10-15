@@ -10,14 +10,17 @@ import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.RecordComponentElement;
@@ -53,7 +56,6 @@ public final class RecordProcessor extends AbstractProcessor {
 
   @Override
   public boolean process(Set<? extends TypeElement> tes, RoundEnvironment roundEnv) {
-
     APContext.setProjectModuleElement(tes, roundEnv);
     final var globalTypeInitializers =
         roundEnv.getElementsAnnotatedWith(typeElement(GlobalPrism.PRISM_TYPE)).stream()
@@ -62,9 +64,13 @@ public final class RecordProcessor extends AbstractProcessor {
 
     InitMap.putAll(globalTypeInitializers);
 
-    for (final TypeElement type :
-        ElementFilter.typesIn(
-            roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE)))) {
+    var elements = roundEnv.getElementsAnnotatedWith(typeElement(RecordBuilderPrism.PRISM_TYPE));
+
+    var records = new HashSet<>(ElementFilter.typesIn(elements));
+    allPackages(elements)
+        .forEach(e -> findRecordsInPackage(e, records));
+
+    for (final TypeElement type : records) {
       if (type.getKind() != ElementKind.RECORD) {
         logError(type, "Builders can only be generated for record classes");
         continue;
@@ -93,12 +99,46 @@ public final class RecordProcessor extends AbstractProcessor {
     return false;
   }
 
+  private static Stream<? extends Element> allPackages(Set<? extends Element> elements) {
+    return Stream.concat(
+      modulePackages(elements),
+      ElementFilter.packagesIn(elements).stream());
+  }
+
+  private static Stream<? extends Element> modulePackages(Set<? extends Element> elements) {
+    return ElementFilter.modulesIn(elements).stream()
+      .map(Element::getEnclosedElements)
+      .flatMap(List::stream);
+  }
+
+  private void findRecordsInPackage(Element pkg, Set<TypeElement> records) {
+    for (var enclosedElement : ElementFilter.typesIn(pkg.getEnclosedElements())) {
+      if (enclosedElement.getKind() == ElementKind.RECORD) {
+        records.add(enclosedElement);
+      }
+      findNestedRecords(enclosedElement, records);
+    }
+  }
+
+  private void findNestedRecords(TypeElement type, Set<TypeElement> types) {
+    for (var enclosedElement : ElementFilter.typesIn(type.getEnclosedElements())) {
+      if (enclosedElement.getKind() == ElementKind.RECORD) {
+        types.add(enclosedElement);
+      }
+      findNestedRecords(enclosedElement, types);
+    }
+  }
+
   private void readElement(TypeElement type) {
-    readElement(type, RecordBuilderPrism.getInstanceOn(type));
+    readElement(type, findRecordBuilderPrism(type));
+  }
+
+  private static RecordBuilderPrism findRecordBuilderPrism(Element element) {
+    var prism = RecordBuilderPrism.getInstanceOn(element);
+    return prism != null ? prism : findRecordBuilderPrism(element.getEnclosingElement());
   }
 
   private void readElement(TypeElement type, BuilderPrism prism) {
-
     final var components = type.getRecordComponents();
     final var packageElement = elements().getPackageOf(type);
     boolean isImported = prism.imported();
@@ -136,9 +176,7 @@ public final class RecordProcessor extends AbstractProcessor {
     boolean getters = prism.getters();
 
     for (final var element : components) {
-
       final var type = UType.parse(element.asType());
-
       writer.append(
           MethodSetter.methodSetter(
               element.getSimpleName(), type.shortType(), builderName, typeParams));
@@ -147,16 +185,13 @@ public final class RecordProcessor extends AbstractProcessor {
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Collection")) {
-
         String param0ShortType = type.param0().shortType();
         Name simpleName = element.getSimpleName();
         writer.append(
-            MethodAdd.methodAdd(
-                simpleName.toString(), builderName, param0ShortType, typeParams));
+            MethodAdd.methodAdd(simpleName.toString(), builderName, param0ShortType, typeParams));
       }
 
       if (APContext.isAssignable(type.mainType(), "java.util.Map")) {
-
         String param0ShortType = type.param0().shortType();
         String param1ShortType = type.param1().shortType();
         Name simpleName = element.getSimpleName();
