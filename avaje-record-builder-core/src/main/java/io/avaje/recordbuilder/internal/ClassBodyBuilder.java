@@ -19,7 +19,8 @@ public class ClassBodyBuilder {
       TypeElement type,
       String typeParams,
       boolean isImported,
-      String packageName) {
+      String packageName,
+      String builderName) {
 
     if (type.getEnclosingElement() instanceof TypeElement) {
       isImported = true;
@@ -53,9 +54,6 @@ public class ClassBodyBuilder {
         builderFrom(components).transform(s -> numberOfComponents > 5 ? "\n        " + s : s);
     final String build =
         build(components).transform(s -> numberOfComponents > 6 ? "\n        " + s : s);
-
-    final var builderName =
-        ProcessorUtils.shortType(utype.mainType()).replace(".", "$") + "Builder";
 
     final var shortName = type.getSimpleName().toString();
     return ClassTemplate.classTemplate(
