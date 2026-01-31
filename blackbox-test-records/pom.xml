@@ -104,7 +104,8 @@
               <compilerArgs>
                 <arg>-XDcompilePolicy=simple</arg>
                 <arg>-Xplugin:ErrorProne \
-                       -XepOpt:NullAway:AnnotatedPackages=io.avaje.recordbuilder
+                     -XepOpt:NullAway:AnnotatedPackages=io.avaje.recordbuilder \ 
+                     -XDaddTypeAnnotationsToSymbol=true
                 </arg>
                 <arg>--should-stop=ifError=FLOW</arg>
                 <arg>-Xmaxerrs</arg>
