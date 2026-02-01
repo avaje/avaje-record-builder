@@ -14,7 +14,7 @@
   <description>test module</description>
 
   <properties>
-    <checker.version>3.51.1</checker.version>
+    <checker.version>3.53.0</checker.version>
     <maven.deploy.skip>true</maven.deploy.skip>
   </properties>
 
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>io.avaje</groupId>
       <artifactId>junit</artifactId>
-      <version>1.6</version>
+      <version>1.7</version>
     </dependency>
     <dependency>
       <groupId>org.checkerframework</groupId>
@@ -89,12 +89,12 @@
                 <path>
                   <groupId>com.google.errorprone</groupId>
                   <artifactId>error_prone_core</artifactId>
-                  <version>2.42.0</version>
+                  <version>2.46.0</version>
                 </path>
                 <path>
                   <groupId>com.uber.nullaway</groupId>
                   <artifactId>nullaway</artifactId>
-                  <version>0.12.10</version>
+                  <version>0.13.1</version>
                 </path>
               </annotationProcessorPaths>
               <annotationProcessors>
@@ -103,9 +103,8 @@
               </annotationProcessors>
               <compilerArgs>
                 <arg>-XDcompilePolicy=simple</arg>
-                <arg>-Xplugin:ErrorProne \
-                       -XepOpt:NullAway:AnnotatedPackages=io.avaje.recordbuilder
-                </arg>
+                <arg>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=io.avaje.recordbuilder</arg>
+                <arg>-XDaddTypeAnnotationsToSymbol=true</arg>
                 <arg>--should-stop=ifError=FLOW</arg>
                 <arg>-Xmaxerrs</arg>
                 <arg>10000</arg>
