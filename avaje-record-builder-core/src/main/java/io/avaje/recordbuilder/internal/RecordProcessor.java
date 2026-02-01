@@ -141,9 +141,7 @@ public final class RecordProcessor extends AbstractProcessor {
         unnamed
             ? ""
             : packageElement.getQualifiedName().toString() + (isImported ? ".builder" : "");
-    var builderName =
-        ProcessorUtils.shortType(UType.parse(type.asType()).mainType()).replace(".", "$")
-            + "Builder";
+    var builderName = builderName(type);
     try (var writer =
         new Append(
             createSourceFile((unnamed ? "" : packageName + ".") + builderName).openWriter())) {
@@ -153,12 +151,26 @@ public final class RecordProcessor extends AbstractProcessor {
               .map(Object::toString)
               .collect(joining(", "))
               .transform(s -> s.isEmpty() ? s : "<" + s + ">");
-      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported, packageName));
+      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported, packageName, builderName));
 
       methods(writer, typeParams, builderName, components, prism);
     } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  private static String builderName(TypeElement type) {
+    var name = ProcessorUtils.shortType(UType.parse(type.asType()).mainType());
+    int pos = name.lastIndexOf('.');
+    if (pos > 0 && isNotNestedRecord(type.getEnclosingElement())) {
+      return name.substring(pos + 1) + "Builder";
+    }
+    return name.replace(".", "$") + "Builder";
+  }
+
+  private static boolean isNotNestedRecord(Element enclosingElement) {
+    ElementKind kind = enclosingElement.getKind();
+    return kind != ElementKind.RECORD;
   }
 
   private void methods(
