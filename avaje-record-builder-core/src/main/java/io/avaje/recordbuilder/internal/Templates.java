@@ -13,6 +13,7 @@ public class Templates {
       {{imports}}
 
       /** Builder class for {@link {{shortName}} } */
+      @SuppressWarnings("all")
       @Generated("avaje-record-builder")
       public class {{builderName}}{{fullTypeParams}} {
 
