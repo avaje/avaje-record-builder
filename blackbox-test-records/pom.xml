@@ -14,7 +14,7 @@
   <description>test module</description>
 
   <properties>
-    <checker.version>3.55.1</checker.version>
+    <checker.version>4.0.0</checker.version>
     <maven.deploy.skip>true</maven.deploy.skip>
   </properties>
 
@@ -89,12 +89,12 @@
                 <path>
                   <groupId>com.google.errorprone</groupId>
                   <artifactId>error_prone_core</artifactId>
-                  <version>2.48.0</version>
+                  <version>2.49.0</version>
                 </path>
                 <path>
                   <groupId>com.uber.nullaway</groupId>
                   <artifactId>nullaway</artifactId>
-                  <version>0.13.1</version>
+                  <version>0.13.2</version>
                 </path>
               </annotationProcessorPaths>
               <annotationProcessors>
