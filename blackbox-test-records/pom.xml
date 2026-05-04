@@ -14,7 +14,7 @@
   <description>test module</description>
 
   <properties>
-    <checker.version>4.0.0</checker.version>
+    <checker.version>4.1.0</checker.version>
     <maven.deploy.skip>true</maven.deploy.skip>
   </properties>
 
