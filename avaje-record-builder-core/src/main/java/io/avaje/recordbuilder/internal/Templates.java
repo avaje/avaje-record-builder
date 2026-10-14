@@ -1,5 +1,7 @@
 package io.avaje.recordbuilder.internal;
 
+import java.util.List;
+
 import io.jstach.jstache.JStache;
 
 public class Templates {
@@ -21,10 +23,10 @@ public class Templates {
         private {{builderName}}() {}
              {{constructor}}
         /**
-         * Return a new builder with all fields set to default Java values
+         * {{builderDoc}}
          */
-        public static{{fullTypeParamsTransformed}}{{builderName}}{{typeParams}} builder() {
-          return new {{builderName}}{{typeParams}}();
+        public static{{fullTypeParamsTransformed}}{{builderReturn}}{{typeParams}} builder() {
+          return new {{builderNew}}{{typeParams}}();
         }
 
         /**
@@ -48,7 +50,7 @@ public class Templates {
            }
            return obj;
          }
-      """)
+      {{stages}}""")
   public record ClassTemplate(
       String packageName,
       String imports,
@@ -60,7 +62,11 @@ public class Templates {
       String build,
       String fullTypeParams,
       String fullTypeParamsTransformed,
-      String typeParams) {
+      String typeParams,
+      String builderNew,
+      String builderReturn,
+      String builderDoc,
+      String stages) {
     String render() {
       return ClassTemplateRenderer.of().execute(this);
     }
@@ -76,7 +82,9 @@ public class Templates {
         String builderFrom,
         String build,
         String fullTypeParams,
-        String typeParams) {
+        String typeParams,
+        List<String> stageNames,
+        String stages) {
 
       var constructor =
           constructorArgs.isBlank()
@@ -93,7 +101,14 @@ public class Templates {
               build,
               fullTypeParams,
               fullTypeParams.transform(s -> s.isEmpty() ? " " : " " + s + " "),
-              typeParams)
+              typeParams,
+              stageNames.isEmpty() ? builderName : "Stages",
+              stageNames.isEmpty() ? builderName : stageNames.get(0),
+              stageNames.isEmpty()
+                  ? "Return a new builder with all fields set to default Java values"
+                  : "Return a new staged builder. The required components must be set in order before\n"
+                      + "   * the optional components can be set and {@code build()} called",
+              stages)
           .render();
     }
   }
@@ -231,6 +246,29 @@ public class Templates {
 
     String render() {
       return MethodPutRenderer.of().execute(this);
+    }
+  }
+
+  @JStache(
+      template =
+          """
+
+             /** Stage requiring a value for {@code {{componentName}} }. */
+             public interface {{stageName}}{{fullTypeParams}} {
+               {{next}}{{typeParams}} {{componentName}}({{type}} {{componentName}});{{collectionMethods}}
+             }
+           """)
+  public record StageInterface(
+      String stageName,
+      String componentName,
+      String type,
+      String next,
+      String fullTypeParams,
+      String typeParams,
+      String collectionMethods) {
+
+    String render() {
+      return StageInterfaceRenderer.of().execute(this);
     }
   }
 }

@@ -142,6 +142,22 @@ public final class RecordProcessor extends AbstractProcessor {
             ? ""
             : packageElement.getQualifiedName().toString() + (isImported ? ".builder" : "");
     var builderName = builderName(type);
+    if (prism.staged()) {
+      var invalid =
+          components.stream()
+              .filter(c -> DefaultValuePrism.isPresent(c) && !Utils.isCollection(c))
+              .toList();
+      invalid.forEach(
+          c ->
+              logError(
+                  c,
+                  "@DefaultValue is not supported on staged builder component %s, only on collections",
+                  c.getSimpleName()));
+      if (!invalid.isEmpty()) {
+        return;
+      }
+    }
+    var stagedComponents = prism.staged() ? components : List.<RecordComponentElement>of();
     try (var writer =
         new Append(
             createSourceFile((unnamed ? "" : packageName + ".") + builderName).openWriter())) {
@@ -151,7 +167,9 @@ public final class RecordProcessor extends AbstractProcessor {
               .map(Object::toString)
               .collect(joining(", "))
               .transform(s -> s.isEmpty() ? s : "<" + s + ">");
-      writer.append(ClassBodyBuilder.createClassStart(type, typeParams, isImported, packageName, builderName));
+      writer.append(
+          ClassBodyBuilder.createClassStart(
+              type, typeParams, isImported, packageName, builderName, stagedComponents));
 
       methods(writer, typeParams, builderName, components, prism);
     } catch (final IOException e) {

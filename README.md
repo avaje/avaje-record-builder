@@ -1,5 +1,5 @@
-[![Build](https://github.com/avaje/avaje-spi-service/actions/workflows/build.yml/badge.svg)](https://github.com/avaje/avaje-spi-service/actions/workflows/build.yml)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/avaje/avaje-spi-service/blob/master/LICENSE)
+[![Build](https://github.com/avaje/avaje-record-builder/actions/workflows/build.yml/badge.svg)](https://github.com/avaje/avaje-record-builder/actions/workflows/build.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/avaje/avaje-record-builder/blob/main/LICENSE)
 [![Maven Central](https://img.shields.io/maven-central/v/io.avaje/avaje-record-builder.svg?label=Maven%20Central)](https://mvnrepository.com/artifact/io.avaje/avaje-record-builder)
 [![Discord](https://img.shields.io/discord/1074074312421683250?color=%237289da&label=discord)](https://discord.gg/Qcqf9R27BR)
 # avaje-record-builder
@@ -9,6 +9,8 @@ Uses Annotation processing to generate builders for records.
 - By default, Collection/Optional Types will not be null (an empty collection/optional will be provided)
 - We can choose the default value of a record component in the generated builder
 - Support for generating Checker/NullAway compliant builders for static null analysis.
+- Optional staged builders that enforce every component is set at compile time
+
 ## Usage
 
 ### 1. Add dependency:
@@ -141,3 +143,24 @@ public class DefaultsBuilder {
 ...the rest of the builder
 }
 ```
+
+## Staged Builders
+With `@RecordBuilder(staged = true)`, `builder()` returns a chain of stages that requires every component to be set, in declaration order, before `build()` is available. Forgetting a component is a compile error instead of a runtime one.
+
+Collection and Map stages can be set in one go, or built up with `add`/`put` (which stay on the stage) and finished with `end<Name>()` to move to the next stage. Adds append to the empty collection (or its `@DefaultValue`), so `end<Name>()` without any adds keeps that initial value. `@DefaultValue` on any other component of a staged builder is a compile error.
+
+```java
+@RecordBuilder(staged = true)
+public record Person(String name, List<String> tags, int age, @Nullable String nickname) {}
+
+Person person = PersonBuilder.builder() // NameStage
+    .name("fred")                       // TagsStage
+    .addTags("admin")                   // TagsStage
+    .addTags("user")                    // TagsStage
+    .endTags()                          // AgeStage
+    .age(42)                            // NicknameStage
+    .nickname(null)                     // PersonBuilder
+    .build();
+```
+
+`builder(Person from)` still returns the full builder, since every component is already set.
