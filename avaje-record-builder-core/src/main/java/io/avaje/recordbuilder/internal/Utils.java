@@ -2,6 +2,7 @@ package io.avaje.recordbuilder.internal;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.util.ElementFilter;
 
 final class Utils {
@@ -46,5 +47,20 @@ final class Utils {
 
   public static boolean isNullableType(String type) {
     return InitMap.get(type) != null;
+  }
+
+  /** Return true if the component is a {@code Collection} or {@code Map}. */
+  static boolean isCollection(RecordComponentElement e) {
+    if (e.asType().getKind().isPrimitive()) {
+      return false;
+    }
+    var mainType = UType.parse(e.asType()).mainType();
+    return APContext.isAssignable(mainType, "java.util.Collection")
+        || APContext.isAssignable(mainType, "java.util.Map");
+  }
+
+  static String stageName(RecordComponentElement e) {
+    var name = e.getSimpleName().toString();
+    return Character.toUpperCase(name.charAt(0)) + name.substring(1) + "Stage";
   }
 }

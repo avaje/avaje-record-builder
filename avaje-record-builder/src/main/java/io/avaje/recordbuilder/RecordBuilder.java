@@ -18,6 +18,17 @@ public @interface RecordBuilder {
   /** Whether getter methods should be generated on the builder */
   boolean getters() default false;
 
+  /**
+   * Whether to generate a staged builder. When true, {@code builder()} returns a chain of stages
+   * that forces every component to be set, in declaration order, before {@code build()} becomes
+   * available.
+   *
+   * <p>Collection and Map stages also have add/put methods that stay on the stage, and a {@code
+   * end<Name>()} method that moves to the next stage. {@link DefaultValue} is only permitted on
+   * Collection and Map components.
+   */
+  boolean staged() default false;
+
   @Retention(SOURCE)
   @Target({TYPE, PACKAGE, MODULE})
   @interface Import {
@@ -27,5 +38,8 @@ public @interface RecordBuilder {
 
     /** Whether getter methods should be generated on the builder */
     boolean getters() default false;
+
+    /** Whether to generate a staged builder, see {@link RecordBuilder#staged()} */
+    boolean staged() default false;
   }
 }
