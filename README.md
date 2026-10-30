@@ -9,7 +9,7 @@ Uses Annotation processing to generate builders for records.
 - By default, Collection/Optional Types will not be null (an empty collection/optional will be provided)
 - We can choose the default value of a record component in the generated builder
 - Support for generating Checker/NullAway compliant builders for static null analysis.
-- Optional staged builders that enforce every component is set at compile time
+- Support for staged builders that enforce every component is set at compile time
 
 ## Usage
 

@@ -106,8 +106,8 @@ public class Templates {
               stageNames.isEmpty() ? builderName : stageNames.get(0),
               stageNames.isEmpty()
                   ? "Return a new builder with all fields set to default Java values"
-                  : "Return a new staged builder. The required components must be set in order before\n"
-                      + "   * the optional components can be set and {@code build()} called",
+                  : "Return a new staged builder. Every component must be set in declaration order\n"
+                      + "   * before {@code build()} can be called",
               stages)
           .render();
     }
