@@ -26,6 +26,9 @@ final class ImportPrism implements BuilderPrism {
   /** store prism value of getters */
   private final Boolean _getters;
 
+  /** store prism value of staged */
+  private final Boolean _staged;
+
   public static final String PRISM_TYPE = "io.avaje.recordbuilder.RecordBuilder.Import";
 
   /**
@@ -126,6 +129,7 @@ final class ImportPrism implements BuilderPrism {
     }
     _value = getArrayValues("value", TypeMirror.class);
     _getters = getValue("getters", Boolean.class);
+    _staged = getValue("staged", Boolean.class);
     this.values = new Values(memberValues);
     this.mirror = mirror;
     this.isValid = valid;
@@ -150,6 +154,17 @@ final class ImportPrism implements BuilderPrism {
   @Override
   public Boolean getters() {
     return _getters;
+  }
+
+  /**
+   * Returns a Boolean representing the value of the {@code boolean public abstract boolean
+   * staged() } member of the Annotation.
+   *
+   * @see io.avaje.recordbuilder.RecordBuilder.Import#staged()
+   */
+  @Override
+  public Boolean staged() {
+    return _staged;
   }
 
   /**
@@ -193,6 +208,14 @@ final class ImportPrism implements BuilderPrism {
      */
     AnnotationValue getters() {
       return values.get("getters");
+    }
+
+    /**
+     * Return the AnnotationValue corresponding to the staged() member of the annotation, or null
+     * when the default value is implied.
+     */
+    AnnotationValue staged() {
+      return values.get("staged");
     }
   }
 
