@@ -13,4 +13,12 @@ public interface BuilderPrism {
    * @see io.avaje.recordbuilder.RecordBuilder.Import#getters()
    */
   Boolean getters();
+
+  /**
+   * Returns a Boolean representing the value of the {@code boolean public abstract boolean
+   * staged() } member of the Annotation.
+   *
+   * @see io.avaje.recordbuilder.RecordBuilder#staged()
+   */
+  Boolean staged();
 }
